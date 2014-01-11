@@ -1,0 +1,24 @@
+<robot_definition>
+<robot_dk name=CRS_A465>
+<axis id="Base" maxvalue="0" minvalue="0" alpha="0" a="0" theta="0" d="0"/>
+<axis id="Joint1" limsup="175.000" liminf="-175.000" alpha="0.000" a="0.000" theta="0.000" d="330.000"/>
+<axis id="Joint2" limsup="90.000" liminf="-90.000" alpha="-90.000" a="0.000" theta="-90.000" d="0.000"/>
+<axis id="Joint3" limsup="110.000" liminf="-110.000" alpha="0.000" a="305.000" theta="-90.000" d="0.000"/>
+<axis id="Joint4" limsup="180.000" liminf="-180.000" alpha="-90.000" a="0.000" theta="0.000" d="330.000"/>
+<axis id="Joint5" limsup="105.000" liminf="-105.000" alpha="90.000" a="0.000" theta="0.000" d="0.000"/>
+<axis id="Joint6" limsup="180.000" liminf="-180.000" alpha="-90.000" a="0.000" theta="180.000" d="76.000"/>
+</robot_dk>
+<robot_geometry>
+<geometry geo="CRS_A465-0" name="Base"/>
+<geometry geo="CRS_A465-1" name="Joint1"/>
+<geometry geo="CRS_A465-2" name="Joint2"/>
+<geometry geo="CRS_A465-3" name="Joint3"/>
+<geometry geo="CRS_A465-4" name="Joint4"/>
+<geometry geo="CRS_A465-5" name="Joint5"/>
+<geometry geo="CRS_A465-6" name="Joint6"/>
+</robot_geometry>
+<CAD_base x="210.9009879" y="37.539041" z="0.000" rx="0.000" ry="0.000" rz="90.000"/>
+<CAD_scale FACTOR="0.025400000"/>
+<CAD_offsets cad_theta1="0.000" cad_theta2="0.000" cad_theta3="0.000" cad_theta4="0.000" cad_theta5="0.000" cad_theta6="0.000"/>
+<Angle_Type id="1"/>
+</robot_definition>

@@ -1,0 +1,24 @@
+<robot_definition>
+<robot_dk name=ABB_IRB4400>
+<axis id="Base" maxvalue="0" minvalue="0" alpha="0" a="0" theta="0" d="0"/>
+<axis id="Joint1" limsup="165.000" liminf="-165.000" alpha="0.000" a="0.000" theta="0.000" d="680.000"/>
+<axis id="Joint2" limsup="95.000" liminf="-70.000" alpha="-90.000" a="200.000" theta="-90.000" d="0.000"/>
+<axis id="Joint3" limsup="65.000" liminf="-60.000" alpha="0.000" a="890.000" theta="0.000" d="0.000"/>
+<axis id="Joint4" limsup="200.000" liminf="-200.000" alpha="-90.000" a="150.000" theta="0.000" d="880.000"/>
+<axis id="Joint5" limsup="120.000" liminf="-120.000" alpha="90.000" a="0.000" theta="0.000" d="0.000"/>
+<axis id="Joint6" limsup="400.000" liminf="-400.000" alpha="-90.000" a="0.000" theta="180.000" d="140.000"/>
+</robot_dk>
+<robot_geometry>
+<geometry geo="ABB_IRB4400-0" name="Base"/>
+<geometry geo="ABB_IRB4400-1" name="Joint1"/>
+<geometry geo="ABB_IRB4400-2" name="Joint2"/>
+<geometry geo="ABB_IRB4400-3" name="Joint3"/>
+<geometry geo="ABB_IRB4400-4" name="Joint4"/>
+<geometry geo="ABB_IRB4400-5" name="Joint5"/>
+<geometry geo="ABB_IRB4400-6" name="Joint6"/>
+</robot_geometry>
+<CAD_base x="0.000" y="0.000" z="0.000" rx="0.000" ry="0.000" rz="0.000"/>
+<CAD_scale FACTOR="1.000000000"/>
+<CAD_offsets cad_theta1="0.000" cad_theta2="0.000" cad_theta3="0.000" cad_theta4="0.000" cad_theta5="0.000" cad_theta6="0.000"/>
+<Angle_Type id="4"/>
+</robot_definition>
