@@ -67,13 +67,13 @@ float axes[][6] = {{0.,-0.,-1.,-90,0,0.},
 const char *rootName[] = {"world","S","L","U","R","B","T"};//world理解为 arm.
 const char *nodeAxis[] = {"worldAxis","SAxis","LAxis","UAxis","RAxis","BAxis","TAxis"};
 const char *filename[] = {
-    "/home/zjk/Downloads/RoKiSim/CAD_Robots/FANUC_M710iC_50-0.stl",
-    "/home/zjk/Downloads/RoKiSim/CAD_Robots/FANUC_M710iC_50-1.stl",
-    "/home/zjk/Downloads/RoKiSim/CAD_Robots/FANUC_M710iC_50-2.stl",
-    "/home/zjk/Downloads/RoKiSim/CAD_Robots/FANUC_M710iC_50-3.stl",
-    "/home/zjk/Downloads/RoKiSim/CAD_Robots/FANUC_M710iC_50-4.stl",
-    "/home/zjk/Downloads/RoKiSim/CAD_Robots/FANUC_M710iC_50-5.stl",
-    "/home/zjk/Downloads/RoKiSim/CAD_Robots/FANUC_M710iC_50-6.stl",
+    "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-0.stl",
+    "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-1.stl",
+    "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-2.stl",
+    "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-3.stl",
+    "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-4.stl",
+    "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-5.stl",
+    "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-6.stl",
 };
 
 GLWidget::GLWidget(QWidget *parent)

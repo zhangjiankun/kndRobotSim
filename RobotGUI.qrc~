@@ -1,9 +1,0 @@
-<RCC>
-    <qresource prefix="resource/imgs/controlPanel.jpg"/>
-</RCC>
-
-<!DOCTYPE RCC><RCC version="1.0">
-<qresource>
-    <file>resource/imgs/controlPanel.jpg</file>
-</qresource>
-</RCC>
