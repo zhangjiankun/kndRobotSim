@@ -50,6 +50,10 @@ class GLWidget : public QGLWidget
 public:
     GLWidget(QWidget *parent = 0);
     ~GLWidget();
+    inline usrAiNode *getNode()
+    {
+        return usrAiNodeRoot;
+    }
 
     int xRotation() const { return xRot; }
     int yRotation() const { return yRot; }
@@ -59,6 +63,10 @@ public slots:
     void setXRotation(int angle);
     void setYRotation(int angle);
     void setZRotation(int angle);
+    void setNode()
+    {
+        updateGL();
+    }
 
 signals:
     void xRotationChanged(int angle);

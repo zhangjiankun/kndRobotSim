@@ -29,6 +29,9 @@ public:
     {
         fileName = file_Name;
     }
+    inline const char * getmName() { return mName;}
+    inline std::list<usrAiNode *> getChildrenList() {return childrenList;}
+
     void addNodeToTree(const char *inobjname, usrAiNode* Node);
     void addShowListToNode(const char *inobjname,int addlist);
     void addNodeFileToNode(const char *inobjname,const char *addlist);

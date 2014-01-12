@@ -186,17 +186,8 @@ void MainWindow::createStatusBar()
 void MainWindow::showModelPanel()
 {
     if (!modelPanelUI) {
-        modelPanelUI = new modelTree(this);
-        #if 0
-        connect(controlPanelUI, SIGNAL (findNext(const QString &,
-                                            Qt::CaseSensitivity)),
-                spreadsheet, SLOT (findNext(const QString &,
-                                            Qt::CaseSensitivity)));
-        connect(controlPanelUI, SIGNAL(findPrevious(const QString &,
-                                                Qt::CaseSensitivity)),
-                 spreadsheet, SLOT(findPrevious(const QString &,
-                                                Qt::CaseSensitivity)));
-        #endif
+        modelPanelUI = new modelTree(glWidget->getNode(), this);
+        connect(modelPanelUI, SIGNAL(modelChanged()), glWidget, SLOT(setNode()));
     }
     if (modelPanelUI->isHidden()) {
         modelPanelUI->show();

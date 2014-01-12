@@ -113,8 +113,8 @@ GLWidget::~GLWidget()
 void GLWidget::creatBasicNodeTree()
 {
     usrAiNodeRoot = new usrAiNode(rootName[0]);
-    usrAiNode *tmp0 = new usrAiNode(nodeAxis[0]);
-    usrAiNodeRoot->addNodeToTree(rootName[0],tmp0 );
+    //usrAiNode *tmp0 = new usrAiNode(nodeAxis[0]);
+    //usrAiNodeRoot->addNodeToTree(rootName[0],tmp0 );
 
     //生成模型树，加载轴坐标（轴坐标随手臂一起运动，Txyz时针对root坐标的移动如果重合的话，参数为0即可）
     for(int i = 1; i < sizeof(rootName)/sizeof(char *); i++)
@@ -122,7 +122,7 @@ void GLWidget::creatBasicNodeTree()
         usrAiNode *tmp = new usrAiNode(rootName[i]);
         usrAiNode *tmp2 = new usrAiNode(nodeAxis[i]);
         usrAiNodeRoot->addNodeToTree(rootName[i-1],tmp);
-        usrAiNodeRoot->addNodeToTree(nodeAxis[i-1],tmp2);
+        usrAiNodeRoot->addNodeToTree(rootName[i-1],tmp2);
         usrAiNodeRoot->addShowListToNode(nodeAxis[i-1],makeWordPlane());
     }
 
