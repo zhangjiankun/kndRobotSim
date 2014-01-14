@@ -53,6 +53,7 @@ QT_END_NAMESPACE
 class GLWidget;
 class robotcontrolpanel;
 class modelTree;
+class position;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -67,6 +68,7 @@ private slots:
     void about();
     void showControlPanel();
     void showModelPanel();
+    void showPositionPanel();
 
 private:
     void createActions();
@@ -88,6 +90,7 @@ private:
     QSlider *zSlider;
     robotcontrolpanel *controlPanelUI;
     modelTree *modelPanelUI;
+    position *positionPanelUI;
 
     QMenu *fileMenu;
     QMenu *helpMenu;
@@ -99,6 +102,7 @@ private:
     QAction *aboutQtAct;
     QAction *controlPanelAction;
     QAction *modelPanelAction;
+    QAction *positionPanelAction;
 
     QToolBar *controlTool;
     QToolBar *modelTool;

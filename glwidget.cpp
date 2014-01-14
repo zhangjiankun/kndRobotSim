@@ -187,7 +187,7 @@ void GLWidget::paintGL()
 #if 1 // do not del
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glFrustum(-1.0, +1.0, -1.0*halfHeight*2/windowWidth, 1.0*halfHeight*2/windowWidth +0.5, viewNearLen/10 + 2, 200.0);
+    glFrustum(-1.0, +1.0, -1.0*halfHeight*2/windowWidth, 1.0*halfHeight*2/windowWidth +0.5, 1.0*(viewNearLen/10 + 2), 200.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 #else

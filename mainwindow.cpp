@@ -45,10 +45,16 @@
 #include "mainwindow.h"
 #include "ui/robotcontrolpanel.h"
 #include "ui/modeltree.h"
+#include "ui/position.h"
 
 MainWindow::MainWindow()
 {
     centralWidget = new QWidget;
+
+    controlPanelUI = NULL;
+    modelPanelUI = NULL;
+    positionPanelUI = NULL;
+
     setCentralWidget(centralWidget);
 
     glWidget = new GLWidget;
@@ -75,8 +81,6 @@ MainWindow::MainWindow()
     centralLayout->addWidget(zSlider, 1, 0);
     centralWidget->setLayout(centralLayout);
 
-    controlPanelUI = NULL;
-    modelPanelUI = NULL;
     zSlider->setValue(0 * 16);
 
     setWindowTitle(tr("Grabber"));
@@ -113,13 +117,18 @@ void MainWindow::about()
 
 void MainWindow::createActions()
 {
+    positionPanelAction = new QAction(tr("&position"), this);
+    positionPanelAction->setIcon(QIcon(":/resource/imgs/position.png"));
+    positionPanelAction->setShortcut(tr("Ctrl+P"));
+    connect(positionPanelAction, SIGNAL(triggered()), this, SLOT(showPositionPanel()));
+
     modelPanelAction = new QAction(tr("&model"), this);
-    modelPanelAction->setIcon(QIcon(":/resource/imgs/qt.png"));
+    modelPanelAction->setIcon(QIcon(":/resource/imgs/modelTree.png"));
     modelPanelAction->setShortcut(tr("Ctrl+M"));
     connect(modelPanelAction, SIGNAL(triggered()), this, SLOT(showModelPanel()));
 
     controlPanelAction = new QAction(tr("&New"), this);
-    controlPanelAction->setIcon(QIcon(":/resource/imgs/qt.png"));
+    controlPanelAction->setIcon(QIcon(":/resource/imgs/controlPanel1.png"));
     controlPanelAction->setShortcut(tr("Ctrl+P"));
     controlPanelAction->setStatusTip(tr("Control panel"));
     connect(controlPanelAction, SIGNAL(triggered()), this, SLOT(showControlPanel()));
@@ -140,6 +149,7 @@ void MainWindow::createActions()
 
     exitAct = new QAction(tr("E&xit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
+    exitAct->setIcon(QIcon(":/resource/imgs/exit.png"));
     connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
 
     aboutAct = new QAction(tr("&About"), this);
@@ -172,6 +182,7 @@ void MainWindow::createToolBars()
 
     modelTool = addToolBar(tr("&modelTool"));
     modelTool->addAction(modelPanelAction);
+    modelTool->addAction(positionPanelAction);
 }
 
 void MainWindow::createContextMenu()
@@ -183,6 +194,20 @@ void MainWindow::createStatusBar()
 
     ;
 }
+
+void MainWindow::showPositionPanel()
+{
+    if (!positionPanelUI) {
+        positionPanelUI = new position(this);
+        //connect(positionPanelUI, SIGNAL(modelChanged()), glWidget, SLOT(setNode()));
+    }
+    if (positionPanelUI->isHidden()) {
+        positionPanelUI->show();
+    } else {
+        positionPanelUI->activateWindow();
+    }
+}
+
 void MainWindow::showModelPanel()
 {
     if (!modelPanelUI) {
@@ -194,7 +219,6 @@ void MainWindow::showModelPanel()
     } else {
         modelPanelUI->activateWindow();
     }
-;
 }
 void MainWindow::showControlPanel()
 {

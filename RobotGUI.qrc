@@ -2,5 +2,12 @@
     <qresource prefix="/">
         <file>resource/imgs/controlPanel.jpg</file>
         <file>resource/imgs/qt.png</file>
+        <file>resource/imgs/11.png</file>
+        <file>resource/imgs/controlPanel.png</file>
+        <file>resource/imgs/controlPanel1.png</file>
+        <file>resource/imgs/leaf.png</file>
+        <file>resource/imgs/position.png</file>
+        <file>resource/imgs/exit.png</file>
+        <file>resource/imgs/modelTree.png</file>
     </qresource>
 </RCC>
