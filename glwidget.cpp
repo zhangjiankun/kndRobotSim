@@ -58,7 +58,7 @@
 #include "usropengl.h"
 
 //{xyz位移,xyz旋转角度}即在什么位置绕xyz分别转多少度
-float axes[][6] = {{0.,-0.,-1.,-90,0,0.},
+float axes[][6] = {{0.,-0.,-1.,0.,0,0.},
                    {0.,0.,-1.},
                    {0.,0.,-1.},
                    {0.,0.,-1.},
@@ -190,6 +190,7 @@ void GLWidget::paintGL()
     glFrustum(-1.0, +1.0, -1.0*halfHeight*2/windowWidth, 1.0*halfHeight*2/windowWidth +0.5, 1.0*(viewNearLen/10 + 2), 200.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
 #else
     if(windowWidth > halfHeight)
         setViewportSub((windowWidth-halfHeight)/2, halfHeight, halfHeight, halfHeight, 1, 100);
@@ -200,9 +201,14 @@ void GLWidget::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glTranslated(wordx * 0.2 , 0.0, 0.0);
-    glTranslated(0.0, wordy * 0.2-10, 0.0);
-    glTranslated(0.0, 0.0, -30.0 + viewNearLen );
-    glCallList(drawGrid(8, 1));
+    glTranslated(0.0, wordy * 0.2, 0.0);
+    glTranslated(0.0, 0.0, -30.0 + 0*viewNearLen );
+    gluLookAt(1.0, 1.0, 1.0,0.0, 0.0, 0.0,0.0, 0.0, 1.0);
+    glCallList(makeWordPlane());
+
+    glRotated(0*xRot / 16.0 , 1.0, 0.0, 0.0);
+    glRotated(0*yRot / 16.0 , 0.0, 1.0, 0.0);
+    glRotated(xRot / 16.0 , 0.0, 0.0, 1.0);
 
 #if 1
     glPushMatrix();
@@ -217,8 +223,8 @@ void GLWidget::paintGL()
     out = m.Inverse() * n;
 #endif
     //设置子坐标系，即旋转轴。
-    axes[1][5] = xRot/16.;
-    axes[2][4] = yRot/16.;
+    //axes[0][3] = xRot/32.;
+    //axes[0][4] = yRot/32.;
     for(int i = 0; i < sizeof(filename)/sizeof(char *) && i < sizeof(rootName)/sizeof(char *); i++)
     {
         setModelMat(rootName[i], axes[i][0], axes[i][1], axes[i][2], axes[i][3],axes[i][4],axes[i][5]);
