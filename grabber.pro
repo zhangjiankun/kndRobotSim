@@ -271,7 +271,8 @@ HEADERS += debug.h \
            code/SmoothingGroups.inl \
            code/BlenderDNA.inl \
     ui/modeltree.h \
-    ui/position.h
+    ui/position.h \
+    camera.h
 FORMS += ui/controlPanel.ui \
     ui/modeltree.ui \
     ui/position.ui
@@ -420,7 +421,8 @@ SOURCES += glwidget.cpp \
            contrib/poly2tri/poly2tri/sweep/sweep.cc \
            contrib/poly2tri/poly2tri/sweep/sweep_context.cc \
     ui/modeltree.cpp \
-    ui/position.cpp
+    ui/position.cpp \
+    camera.cpp
 RESOURCES += RobotGUI.qrc
 QT           += opengl
 LIBS += -lGLU\
