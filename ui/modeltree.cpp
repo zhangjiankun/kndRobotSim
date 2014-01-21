@@ -11,22 +11,29 @@ modelTree::modelTree(usrAiNode *Node, QWidget *parent) :
 {
     organization = "Trolltech";
     application = "Designer";
+    qMenu = NULL;
 
     ui->setupUi(this);
     ui->treeWidget->setColumnCount(1);
-    ui->treeWidget->setHeaderLabels(
-            QStringList() << tr("Model Name"));
+    ui->treeWidget->setHeaderLabels( QStringList() << tr("Model Name") );
     ui->treeWidget->header()->setResizeMode(0, QHeaderView::Stretch);
+    //其中参数设置为Qt::CustomContextMenu，则点击鼠标右键会发射信号customContextMenuRequested(const QPoint),事实上设置之后反而不能工作。
+    //ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     //ui->treeWidget->header()->setResizeMode(1, QHeaderView::Stretch);
 
     setWindowTitle(tr("Model Tree Viewer"));
     showModelTree(Node);
-
+    creatModelTreeActions();
+    //QWidget及其子类都可有右键菜单，customContextMenuRequested属于类QWidget，不用关联，因为已经自动关联了contextMenuEvent
+    //connect(ui->treeWidget, SIGNAL(customContextMenuRequested(const QPoint)), this, SLOT(contextMenuEvent(const QPoint)));
 }
 
 modelTree::~modelTree()
 {
     delete ui;
+    delete AddChildrenModel;
+    delete ModelPosition;
+    delete HiddenModel;
 }
 
 
@@ -99,3 +106,40 @@ void modelTree::addChildModels(usrAiNode *Node, QTreeWidgetItem *parent)
     }
 
 }
+
+void modelTree::creatModelTreeActions()
+{
+    AddChildrenModel = new QAction(tr("&AddChildrenModel"),this);
+    connect(AddChildrenModel, SIGNAL(triggered()), this, SIGNAL(sigAddChildrenModel()));
+
+    ModelPosition = new QAction(tr("&ModelPosition"), this);
+    connect(ModelPosition, SIGNAL(triggered()), this, SLOT(sigModelPosition()));
+
+    HiddenModel = new QAction(tr("&Hidden"), this);
+    connect(HiddenModel, SIGNAL(triggered()), this, SLOT(sigHiddenModel()));
+}
+
+void modelTree::contextMenuEvent(QContextMenuEvent * event)
+{
+    if (NULL == qMenu)
+    {
+        qMenu = new QMenu(ui->treeWidget);
+    }
+
+    qMenu->clear();//清除原有菜单
+    QTreeWidgetItem *curItem = NULL;
+    QPoint point = event->pos();//得到窗口坐标
+    curItem = ui->treeWidget->itemAt(point);//这里不管是不是点击item上都为默认选中item
+    if(curItem==NULL)
+    {
+       qDebug("Item is NULL");
+       return;           //这种情况是右键的位置不在treeItem的范围内，即在空白位置右击
+    }
+    qDebug("currentItem is %f ",curItem);
+
+    qMenu->addAction(AddChildrenModel);
+    qMenu->addAction(ModelPosition);
+    qMenu->addAction(HiddenModel);
+    qMenu->exec(QCursor::pos()); //在鼠标点击的位置显示鼠标右键菜单
+}
+

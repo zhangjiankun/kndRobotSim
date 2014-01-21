@@ -2,7 +2,7 @@
 #define MODELTREE_H
 
 #include <QDialog>
-
+class QMenu;
 class QDialogButtonBox;
 class QSettings;
 class QTreeWidget;
@@ -20,16 +20,24 @@ public:
     explicit modelTree(usrAiNode *Node, QWidget *parent) ;
     ~modelTree();
 signals:
-    void modelChanged();
+    void sigAddChildrenModel();
+    void sigModelPosition();
+    void sigHiddenModel();
 private slots:
     void accept();
 private:
     void showModelTree(usrAiNode *Node);
     void addChildModels(usrAiNode *Node, QTreeWidgetItem *parent);
+    void contextMenuEvent(QContextMenuEvent * event);
+    void creatModelTreeActions();
 
     QString organization;
     QString application;
     Ui::modelTree *ui;
+    QMenu *qMenu;
+    QAction* AddChildrenModel;
+    QAction* ModelPosition;
+    QAction* HiddenModel;
 };
 
 
