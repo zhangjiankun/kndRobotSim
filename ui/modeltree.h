@@ -22,9 +22,12 @@ public:
 signals:
     void sigAddChildrenModel();
     void sigModelPosition();
-    void sigHiddenModel();
+    void modelChanged();
 private slots:
     void accept();
+    void slotHiddenModel();
+    void slotShowModel();
+
 private:
     void showModelTree(usrAiNode *Node);
     void addChildModels(usrAiNode *Node, QTreeWidgetItem *parent);
@@ -38,6 +41,9 @@ private:
     QAction* AddChildrenModel;
     QAction* ModelPosition;
     QAction* HiddenModel;
+    QAction* ShowModel;
+    usrAiNode *NodeFromOut;//结点指针
+    QTreeWidgetItem *curItem;//鼠标右键时指定的item
 };
 
 

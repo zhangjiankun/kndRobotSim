@@ -212,7 +212,9 @@ void MainWindow::showModelPanel()
 {
     if (!modelPanelUI) {
         modelPanelUI = new modelTree(glWidget->getNode(), this);
-        connect(modelPanelUI, SIGNAL(modelChanged()), glWidget, SLOT(setNode()));
+        connect(modelPanelUI, SIGNAL(modelChanged()), glWidget, SLOT(updateGL()));
+        //connect(modelPanelUI, SIGNAL(sigModelPosition()), glWidget, SLOT(setNode()));
+        //connect(modelPanelUI, SIGNAL(sigHiddenModel()), glWidget, SLOT(hiddenModel(const char *)));
     }
     if (modelPanelUI->isHidden()) {
         modelPanelUI->show();
@@ -222,7 +224,6 @@ void MainWindow::showModelPanel()
 }
 void MainWindow::showControlPanel()
 {
-
     if (!controlPanelUI) {
         controlPanelUI = new robotcontrolpanel(this);
         #if 0

@@ -50,10 +50,7 @@ class GLWidget : public QGLWidget
 public:
     GLWidget(QWidget *parent = 0);
     ~GLWidget();
-    inline usrAiNode *getNode()
-    {
-        return usrAiNodeRoot;
-    }
+    inline usrAiNode *getNode() { return usrAiNodeRoot; }
 
     int xRotation() const { return xRot; }
     int yRotation() const { return yRot; }

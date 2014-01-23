@@ -5,28 +5,23 @@
 class usrAiNode
 {
 public:
-    usrAiNode()
-    {
-        // set all members to zero by default
+    usrAiNode() { // set all members to zero by default
         mParent = NULL;
-        mName = NULL; fileName = NULL;
+        mName = NULL; fileName = NULL; ishidden = false;
     }
 
     /** Construction from a specific name */
-    usrAiNode(const char *name)
-    {
-        // set all members to zero by default
+    usrAiNode(const char *name) { // set all members to zero by default
         mParent = NULL;
         mName = name;
-        fileName = NULL;
+        fileName = NULL; ishidden = false;
     }
 
     ~usrAiNode();
 
-    inline usrAiNode* FindNode(const char* name);
+    usrAiNode* FindNode(const char* name);
 
-    inline void setFileName(char * file_Name)
-    {
+    inline void setFileName(char * file_Name) {
         fileName = file_Name;
     }
     inline const char * getmName() { return mName;}
@@ -40,12 +35,15 @@ public:
     void callShowList();
     void setTranslationMatrix(const char *objname, const aiMatrix4x4& m);
     void printAllNode();
+    void setHidden(bool hiddenflag) { ishidden = hiddenflag;}
+    bool getHidden() { return ishidden = 0;}
 
 private:
     usrAiNode* mParent;
     const char *fileName;
     const char *mName;
     aiMatrix4x4 mTransformation;
+    bool ishidden; //true表示隐藏，false显示
 
     std::list<usrAiNode *> childrenList;
     std::list<unsigned int*> meshList;

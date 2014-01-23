@@ -29,7 +29,7 @@ usrAiNode::~usrAiNode() //当节点时，下挂的所有节点也均释放
         }
     }
 }
-inline usrAiNode* usrAiNode::FindNode(const char* name)
+usrAiNode* usrAiNode::FindNode(const char* name)
 {
     std::list<usrAiNode *>::iterator childrenItem;
     if (!::strcmp(mName,name))return this;
@@ -125,13 +125,16 @@ void usrAiNode::callShowList()
     std::list<int>::iterator showlistiterator;
     std::list<usrAiNode *>::iterator childrenItem;
 
+
     mTransformation.Transpose();
     glMultMatrixf((float*)&mTransformation);
     for (showlistiterator=showList.begin();showlistiterator!=showList.end(); ++showlistiterator)
     {
       // dereference the iterator to get the element
         DEBUG_OUT("call show list:%d",*showlistiterator);
-        glCallList(*showlistiterator);
+        if (false == ishidden) {
+            glCallList(*showlistiterator);
+        }
     }
 
     for(childrenItem = childrenList.begin(); childrenItem != childrenList.end(); ++childrenItem)

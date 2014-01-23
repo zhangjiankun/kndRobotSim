@@ -92,7 +92,6 @@ GLWidget::GLWidget(QWidget *parent)
     viewNearLen = getNearLen();
     fullscreen = false;
 
-
     setFocusPolicy(Qt::StrongFocus);
     //QTimer *timer = new QTimer(this);
     //connect(timer, SIGNAL(timeout()), this, SLOT(advanceGears()));
@@ -106,7 +105,6 @@ GLWidget::~GLWidget()
     glDeleteLists(gear2, 1);
     glDeleteLists(gear3, 1);
     //glDeleteLists(scene_list,1);
-
 }
 
 
