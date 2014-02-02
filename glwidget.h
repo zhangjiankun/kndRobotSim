@@ -95,14 +95,19 @@ private:
     float getNearLen();
     void creatBasicNodeTree();
     unsigned int drawGrid(float size, float step);
-void setViewportSub(int x, int y, int width, int height, float nearPlane, float farPlane);
-void setFrustum(float fovY, float aspectRatio, float front, float back,float floatArry[]);
-void setFrustum(float l, float r, float b, float t, float n, float f, float floatArry[]);
-void setModelMat(const char *objname, GLfloat Tx, GLfloat Ty, GLfloat Tz, GLfloat Rx, GLfloat Ry, GLfloat Rz);
+    void setViewportSub(int x, int y, int width, int height, float nearPlane, float farPlane);
+    void setFrustum(float fovY, float aspectRatio, float front, float back,float floatArry[]);
+    void setFrustum(float l, float r, float b, float t, float n, float f, float floatArry[]);
+    void setModelMat(const char *objname, GLfloat Tx, GLfloat Ty, GLfloat Tz, GLfloat Rx, GLfloat Ry, GLfloat Rz);
+    void loadGLTextures(const char *fileName);//载入纹理
 
+    //显示列表
     GLuint gear1;
     GLuint gear2;
     GLuint gear3;
+    GLuint axis;
+
+
     int xRot;
     int yRot;
     int zRot;
@@ -115,6 +120,7 @@ void setModelMat(const char *objname, GLfloat Tx, GLfloat Ty, GLfloat Tz, GLfloa
     bool fullscreen; //全屏幕标志
     QPoint lastPos;
     usrAiNode* usrAiNodeRoot;
+    GLuint texture[1];
     //float axes[][6];
 
 };

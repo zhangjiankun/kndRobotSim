@@ -140,8 +140,11 @@ void usrAiNode::callShowList()
     for(childrenItem = childrenList.begin(); childrenItem != childrenList.end(); ++childrenItem)
     {
         glPushMatrix();
+        //在绘制每个物体前应该把当前状态先保存到堆栈中，再等绘制完后取出原来的状态
+        glPushAttrib(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_CURRENT_BIT);
         (*childrenItem)->callShowList();
         glPopMatrix();
+        glPopAttrib();
     }
 }
 

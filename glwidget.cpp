@@ -104,6 +104,8 @@ GLWidget::~GLWidget()
     glDeleteLists(gear1, 1);
     glDeleteLists(gear2, 1);
     glDeleteLists(gear3, 1);
+    glDeleteLists(axis, 1);
+    glDeleteTextures(1,texture);
     //glDeleteLists(scene_list,1);
 }
 
@@ -115,7 +117,7 @@ void GLWidget::creatBasicNodeTree()
     //usrAiNodeRoot->addNodeToTree(rootName[0],tmp0 );
 
     //生成模型树，加载轴坐标（轴坐标随手臂一起运动，Txyz时针对root坐标的移动如果重合的话，参数为0即可）
-    for(int i = 1; i < sizeof(rootName)/sizeof(char *); i++)
+    for(unsigned int i = 1; i < sizeof(rootName)/sizeof(char *); i++)
     {
         usrAiNode *tmp = new usrAiNode(rootName[i]);
         usrAiNode *tmp2 = new usrAiNode(nodeAxis[i]);
@@ -125,7 +127,7 @@ void GLWidget::creatBasicNodeTree()
     }
 
     //在每个节点上加载手臂模型
-    for(int i = 0; i < sizeof(filename)/sizeof(char *) && i < sizeof(rootName)/sizeof(char *); i++)
+    for(unsigned int i = 0; i < sizeof(filename)/sizeof(char *) && i < sizeof(rootName)/sizeof(char *); i++)
     {
         //setModelMat(rootName[i], 0., 0., 0., axes[i][3],axes[i][4],axes[i][5]);
 
@@ -138,7 +140,6 @@ void GLWidget::creatBasicNodeTree()
         aiReleaseImport(scene);
     }
 
-
 }
 
 void GLWidget::initializeGL()
@@ -149,20 +150,26 @@ void GLWidget::initializeGL()
     static const GLfloat reflectance2[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
     static const GLfloat reflectance3[4] = { 0.2f, 0.2f, 1.0f, 1.0f };
 
+    loadGLTextures(":/resource/imgs/tiankong.jpg");
+
     glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
-    glEnable(GL_DEPTH_TEST);
 
     creatBasicNodeTree();
 
+    //显示列表生成
     gear2 = makeGear(reflectance2, 0.5, 1.0, 2.0, 0.7, 10);
     gear3 = makeGear(reflectance3, 1.3, 2.0, 0.5, 0.7, 15);
+    axis = makeWordPlane();
 
-    DEBUG_OUT("scene = %d",scene);
+    DEBUG_OUT("scene = %f",scene);
 
     glEnable(GL_NORMALIZE);
-    glClearColor(0.2f, 0.2f, 0.2f, 0.5f);
+    glClearColor(0.3f, 0.3f, 0.5f, 0.5f);
+    glClearDepth( 1.0 );//Specifies the depth value used when the depth buffer is cleared. The initial value is 1.
+    glEnable( GL_DEPTH_TEST );
+    glDepthFunc( GL_LEQUAL );
 
 }
 inline float GLWidget::getNearLen()
@@ -176,16 +183,16 @@ void GLWidget::paintGL()
 
     int windowWidth=width();
     int halfHeight=height();
-    DEBUG_OUT("enter paintGL. fullscreen = %d", fullscreen);
-    if (fullscreen)
-    {
+
+    if (fullscreen) {
         windowWidth = QApplication::desktop()->width();
         halfHeight = QApplication::desktop()->height();
     }
+    qDebug("enter paintGL(). windowW %d H %d", windowWidth ,halfHeight);
 #if 1 // do not del
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glFrustum(-1.0, +1.0, -1.0*halfHeight*2/windowWidth, 1.0*halfHeight*2/windowWidth +0.5, 1.0*(viewNearLen/10 + 2), 200.0);
+    glFrustum(-1.0, +1.0, -1.0*halfHeight/windowWidth, 1.0*halfHeight/windowWidth, 1.0*(viewNearLen/10. + 2.), 200.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -195,14 +202,16 @@ void GLWidget::paintGL()
     else
         setViewportSub(0, halfHeight+(halfHeight-windowWidth)/2, windowWidth, windowWidth, 1, 100);
 #endif
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+    ComputeBackgroundQuad(windowWidth, halfHeight, texture[0]);
 
     glTranslated(wordx * 0.2 , 0.0, 0.0);
     glTranslated(0.0, wordy * 0.2, 0.0);
     glTranslated(0.0, 0.0, -30.0 + 0*viewNearLen );
     gluLookAt(1.0, 1.0, 1.0,0.0, 0.0, 0.0,0.0, 0.0, 1.0);
-    glCallList(makeWordPlane());
+
+    glCallList(axis);
+    //glCallList(gear2);
 
     glRotated(0*xRot / 16.0 , 1.0, 0.0, 0.0);
     glRotated(0*yRot / 16.0 , 0.0, 1.0, 0.0);
@@ -223,18 +232,13 @@ void GLWidget::paintGL()
     //设置子坐标系，即旋转轴。
     //axes[0][3] = xRot/32.;
     //axes[0][4] = yRot/32.;
-    for(int i = 0; i < sizeof(filename)/sizeof(char *) && i < sizeof(rootName)/sizeof(char *); i++)
+    for(unsigned int i = 0; i < sizeof(filename)/sizeof(char *) && i < sizeof(rootName)/sizeof(char *); i++)
     {
         setModelMat(rootName[i], axes[i][0], axes[i][1], axes[i][2], axes[i][3],axes[i][4],axes[i][5]);
     }
     usrAiNodeRoot->callShowList();
     usrAiNodeRoot->printAllNode();
     //usrAiNodeRoot->printShowListsFromRoot();
-    //glCallList(gear1);
-    //drawGear(gear1, -3.0, -2.0, 0.0, gear1Rot / 16.0);
-    //drawGear(gear2, +3.1, -2.0, 0.0, -2.0 * (gear1Rot / 16.0) - 9.0);
-    //glRotated(+90.0, 1.0, 0.0, 0.0);
-    //drawGear(gear3, -3.1, -1.8, -2.2, +2.0 * (gear1Rot / 16.0) - 2.0);
 
     glPopMatrix();
 
@@ -254,6 +258,7 @@ void GLWidget::resizeGL(int width, int height)
     DEBUG_OUT("enter reSize,width %d, height %d",width, height);
 
     glViewport(0, 0, width, height);
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 }
 
 void GLWidget::setModelMat(const char *objname, GLfloat Tx, GLfloat Ty, GLfloat Tz, GLfloat Rx, GLfloat Ry, GLfloat Rz)
@@ -329,6 +334,48 @@ void GLWidget::setFrustum(float l, float r, float b, float t, float n, float f, 
     floatArry[11] = -(2 * f * n) / (f - n);
     floatArry[14] = -1;
     floatArry[15] =  0;
+}
+
+
+void GLWidget::loadGLTextures(const char *fileName)
+{
+    QImage tex, buf;
+    if (!buf.load(fileName))
+    {
+        //如果载入不成功，自动生成一个32位色的绿色图片。
+        qWarning( "Could not read image file, using single-color instead." );
+        QImage dummy(128, 128, QImage::Format_RGB32);
+        dummy.fill( Qt::green );
+        buf = dummy;
+    }
+    //这里使用了QGLWidget类中提供的一个静态函数converToGLFormat()，专门用来转换图片的，具体情况请参见相应文档。
+    tex = QGLWidget::convertToGLFormat( buf );
+
+    //创建一个纹理。告诉OpenGL我们想生成一个纹理名字(如果您想载入多个纹理，加大数字)。
+    glGenTextures(1, &texture[0]);
+
+    //使用来自位图数据生成的典型纹理。glBindTexture告诉OpenGL将纹理名字texture[0]绑定到纹理目标上。
+    //2D纹理只有高度（在Y轴上）和宽度（在X轴上）。本例中我们告知OpenGL，&texture[0]处的内存已经可用。
+    //我们创建的纹理将存储在&texture[0]的指向的内存区域。
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture( GL_TEXTURE_2D, texture[0] );
+
+    //这里真正的创建纹理。GL_TEXTURE_2D告诉OpenGL此纹理是一个2D纹理。数字零代表图像的详细程度，通常就由它为零去了。
+    //数字三是数据的成分数。因为图像是由红色数据，绿色数据，蓝色数据三种组分组成。
+    //tex.width()是纹理的宽度。tex.height()是纹理的高度。数字零是边框的值，一般就是零。
+    //GL_RGBA 告诉OpenGL图像数据由红、绿、蓝三色数据以及alpha通道数据组成，这个是由于QGLWidget类的converToGLFormat()函数的原因。
+    //GL_UNSIGNED_BYTE 意味着组成图像的数据是无符号字节类型的。
+    //最后tex.bits()告诉OpenGL纹理数据的来源。
+    glTexImage2D( GL_TEXTURE_2D, 0, 3, tex.width(), tex.height(), 0,
+      GL_RGBA, GL_UNSIGNED_BYTE, tex.bits() );
+
+    //上面的两行告诉OpenGL在显示图像时，当它比放大得原始的纹理大（GL_TEXTURE_MAG_FILTER）
+    //或缩小得比原始得纹理小（GL_TEXTURE_MIN_FILTER）时OpenGL采用的滤波方式。
+    //通常这两种情况下我都采用GL_LINEAR。如果您的机器很慢，您也许应该采用GL_NEAREST。
+    //过滤的纹理在放大的时候，看起来斑驳的很。您也可以结合这两种滤波方式。在近处时使用GL_LINEAR，远处时GL_NEAREST。
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glDisable(GL_TEXTURE_2D);
 }
 
 
