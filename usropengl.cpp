@@ -117,11 +117,11 @@ void ComputeBackgroundQuad(GLint width, GLint height, GLuint textureID)
 
     gluUnProject(0, height, winZ, modelMatrix, projMatrix, viewport,
                  &bgVertices[3].x, &bgVertices[3].y, &bgVertices[3].z);
-    qDebug("----->w:%d h:%d texture:%d", width, height, textureID);
+    //qDebug("----->w:%d h:%d texture:%d", width, height, textureID);
     //qDebug("----->%d %d", viewport[2], viewport[3]);和width height是一样的
-    for(unsigned int i = 0; i < 4; i++)   {
-        qDebug("----->%f %f %f", bgVertices[i].x,bgVertices[i].y,bgVertices[i].z);
-    }
+    //for(unsigned int i = 0; i < 4; i++)   {
+    //    qDebug("----->%f %f %f", bgVertices[i].x,bgVertices[i].y,bgVertices[i].z);
+    //}
 
     //2. 关闭深度测试
     glDisable(GL_DEPTH_TEST);

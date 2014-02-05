@@ -37,8 +37,18 @@ public:
     void printAllNode();
     void setHidden(bool hiddenflag) { ishidden = hiddenflag;}
     bool getHidden() { return ishidden = 0;}
+public:
+    void setXTransition(float xposition);
+    void setYTransition(float yposition);
+    void setZTransition(float zposition);
+
+    void setXRotation(int angle);
+    void setYRotation(int angle);
+    void setZRotation(int angle);
 
 private:
+    void setXYZTransition(float xposition, float yposition, float zposition);
+
     usrAiNode* mParent;
     const char *fileName;
     const char *mName;

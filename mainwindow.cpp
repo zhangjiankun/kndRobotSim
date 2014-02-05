@@ -195,11 +195,29 @@ void MainWindow::createStatusBar()
     ;
 }
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void MainWindow::showPositionPanel()
 {
     if (!positionPanelUI) {
-        positionPanelUI = new position(this);
-        //connect(positionPanelUI, SIGNAL(modelChanged()), glWidget, SLOT(setNode()));
+        positionPanelUI = new position(glWidget->getNode(),this);
+        connect(positionPanelUI, SIGNAL(xTransitionChanged(double, const char *)),
+                glWidget, SLOT(setXTransition(double, const char *)));
+        connect(positionPanelUI, SIGNAL(yTransitionChanged(double, const char *)),
+                glWidget, SLOT(setYTransition(double, const char *)));
+        connect(positionPanelUI, SIGNAL(zTransitionChanged(double, const char *)),
+                glWidget, SLOT(setZTransition(double, const char *)));
+        connect(glWidget, SIGNAL(xTransitionChanged(double)), positionPanelUI, SLOT(setXTransition(double)));
+        connect(glWidget, SIGNAL(yTransitionChanged(double)), positionPanelUI, SLOT(setYTransition(double)));
+        connect(glWidget, SIGNAL(zTransitionChanged(double)), positionPanelUI, SLOT(setZTransition(double)));
     }
     if (positionPanelUI->isHidden()) {
         positionPanelUI->show();
@@ -208,6 +226,16 @@ void MainWindow::showPositionPanel()
     }
 }
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void MainWindow::showModelPanel()
 {
     if (!modelPanelUI) {
@@ -222,6 +250,17 @@ void MainWindow::showModelPanel()
         modelPanelUI->activateWindow();
     }
 }
+
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void MainWindow::showControlPanel()
 {
     if (!controlPanelUI) {

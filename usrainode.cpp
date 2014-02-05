@@ -1,3 +1,22 @@
+/*************************************************
+Copyright (C), 1988-1999, Tech. Co., Ltd.
+File name: // 文件名
+Author:
+Version:
+Date: // 作者、版本及完成日期
+Description: // 用于详细说明此程序文件完成的主要功能，与其他模块
+// 或函数的接口，输出值、取值范围、含义及参数间的控
+// 制、顺序、独立或依赖等关系
+Others: // 其它内容的说明
+Function List: // 主要函数列表，每条记录应包括函数名及功能简要说明
+1. ....
+History: // 修改历史记录列表，每条修改记录应包括修改日期、修改
+// 者及修改内容简述
+1. Date:
+Author:
+Modification:
+2. ...
+*************************************************/
 #include "usrainode.h"
 #include<iostream>
 #include<debug.h>
@@ -7,6 +26,16 @@
 #include <assimp/postprocess.h>
 #include <queue>
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 usrAiNode::~usrAiNode() //当节点时，下挂的所有节点也均释放
 {
     std::list<int>::iterator showlistiterator;
@@ -29,6 +58,17 @@ usrAiNode::~usrAiNode() //当节点时，下挂的所有节点也均释放
         }
     }
 }
+
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 usrAiNode* usrAiNode::FindNode(const char* name)
 {
     std::list<usrAiNode *>::iterator childrenItem;
@@ -41,6 +81,17 @@ usrAiNode* usrAiNode::FindNode(const char* name)
 
     return NULL;
 }
+
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void usrAiNode::addNodeToTree(const char* objname, usrAiNode* Node)
 {
     usrAiNode * theFoundedNod = FindNode(objname);
@@ -53,6 +104,16 @@ void usrAiNode::addNodeToTree(const char* objname, usrAiNode* Node)
     theFoundedNod->childrenList.push_back(Node);
 }
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void usrAiNode::addShowListToNode(const char *objname,int addlist)
 {
     usrAiNode * theFoundedNod = FindNode(objname);
@@ -64,6 +125,16 @@ void usrAiNode::addShowListToNode(const char *objname,int addlist)
     theFoundedNod->showList.push_back(addlist);
 }
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void usrAiNode::addNodeFileToNode(const char *objname, const char *file_name)
 {
     usrAiNode * theFoundedNod = FindNode(objname);
@@ -95,6 +166,16 @@ void usrAiNode::printShowListsFromRoot()
 }
 #endif
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void usrAiNode::delNodeFromTree(const char *objname, usrAiNode* Node)
 {
     usrAiNode * theFoundedNod = FindNode(objname);
@@ -106,7 +187,16 @@ void usrAiNode::delNodeFromTree(const char *objname, usrAiNode* Node)
     delete theFoundedNod;
 }
 
-
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void usrAiNode::rmShowList(const char *objname, int showlist)
 {
     usrAiNode * theFoundedNod = FindNode(objname);
@@ -120,6 +210,16 @@ void usrAiNode::rmShowList(const char *objname, int showlist)
     theFoundedNod->showList.remove(showlist);
 }
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void usrAiNode::callShowList()
 {
     std::list<int>::iterator showlistiterator;
@@ -131,7 +231,7 @@ void usrAiNode::callShowList()
     for (showlistiterator=showList.begin();showlistiterator!=showList.end(); ++showlistiterator)
     {
       // dereference the iterator to get the element
-        DEBUG_OUT("call show list:%d",*showlistiterator);
+        //DEBUG_OUT("call show list:%d",*showlistiterator);
         if (false == ishidden) {
             glCallList(*showlistiterator);
         }
@@ -148,6 +248,16 @@ void usrAiNode::callShowList()
     }
 }
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void usrAiNode::setTranslationMatrix(const char *objname, const aiMatrix4x4& m)
 {
     usrAiNode * theFoundedNod = FindNode(objname);
@@ -159,6 +269,16 @@ void usrAiNode::setTranslationMatrix(const char *objname, const aiMatrix4x4& m)
     theFoundedNod->mTransformation = m;
 }
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void usrAiNode::printAllNode()
 {
     usrAiNode* positionInQue = NULL;
@@ -197,6 +317,111 @@ void usrAiNode::printAllNode()
     std::cout<<std::endl;
 }
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+void usrAiNode::setXTransition(float xposition)
+{
+    setXYZTransition(xposition, 0., 0.);
+}
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+void usrAiNode::setYTransition(float yposition)
+{
+    setXYZTransition(0., yposition, 0.);
+}
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+void usrAiNode::setZTransition(float zposition)
+{
+    setXYZTransition(0., 0., zposition);
+}
+
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+void usrAiNode::setXYZTransition(float xposition, float yposition, float zposition)
+{
+    aiVector3D v(xposition,yposition,zposition);
+    aiMatrix4x4 out;
+    mTransformation = mTransformation.Translation(v, out) * mTransformation;
+}
+
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+void usrAiNode::setXRotation(int angle)
+{
+    ;
+}
+
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+void usrAiNode::setYRotation(int angle)
+{
+
+    ;
+}
+
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+void usrAiNode::setZRotation(int angle)
+{
+    ;
+}
 

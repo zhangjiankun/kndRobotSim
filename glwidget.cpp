@@ -501,6 +501,96 @@ void GLWidget::wheelEvent(QWheelEvent *event)
     event->accept();
 }
 
+
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+void GLWidget::setXTransition(double xposition, const char * currentNodeName)
+{
+    usrAiNode * theFoundedNod = NULL;
+
+    if (NULL != usrAiNodeRoot) {
+        theFoundedNod = usrAiNodeRoot->FindNode(currentNodeName);
+        if (NULL == theFoundedNod) {
+            DEBUG_OUT("%s,%d:node not exist",__FILE__,__LINE__);
+            return;
+        }
+DEBUG_OUT("%s,%d:move x %f %s",__FILE__,__LINE__,xposition,currentNodeName);
+        theFoundedNod->setXTransition(xposition);
+        updateGL();
+    }
+}
+
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+void GLWidget::setYTransition(double yposition, const char * currentNodeName)
+{
+    usrAiNode * theFoundedNod = NULL;
+
+    if (NULL != usrAiNodeRoot) {
+        theFoundedNod = usrAiNodeRoot->FindNode(currentNodeName);
+        if (NULL == theFoundedNod) {
+            DEBUG_OUT("%s,%d:node not exist",__FILE__,__LINE__);
+            return;
+        }
+        DEBUG_OUT("%s,%d:move y %f %s",__FILE__,__LINE__,yposition,currentNodeName);
+
+        theFoundedNod->setYTransition(yposition);
+        updateGL();
+    }
+}
+
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+void GLWidget::setZTransition(double zposition, const char * currentNodeName)
+{
+    usrAiNode * theFoundedNod = NULL;
+
+    if (NULL != usrAiNodeRoot) {
+        theFoundedNod = usrAiNodeRoot->FindNode(currentNodeName);
+        if (NULL == theFoundedNod) {
+            DEBUG_OUT("%s,%d:node not exist",__FILE__,__LINE__);
+            return;
+        }
+DEBUG_OUT("%s,%d:move y %f %s",__FILE__,__LINE__,zposition,currentNodeName);
+        theFoundedNod->setZTransition(zposition);
+        updateGL();
+    }
+}
+
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void GLWidget::setXRotation(int angle)
 {
     normalizeAngle(&angle);
@@ -511,6 +601,16 @@ void GLWidget::setXRotation(int angle)
     }
 }
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void GLWidget::setYRotation(int angle)
 {
     normalizeAngle(&angle);
@@ -521,6 +621,16 @@ void GLWidget::setYRotation(int angle)
     }
 }
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void GLWidget::setZRotation(int angle)
 {
     normalizeAngle(&angle);

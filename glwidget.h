@@ -60,15 +60,22 @@ public slots:
     void setXRotation(int angle);
     void setYRotation(int angle);
     void setZRotation(int angle);
-    void setNode()
-    {
+    void setXTransition(double xposition, const char * currentNodeName);
+    void setYTransition(double yposition, const char * currentNodeName);
+    void setZTransition(double zposition, const char * currentNodeName);
+
+    void setNode() {
         updateGL();
     }
 
+
 signals:
-    void xRotationChanged(int angle);
-    void yRotationChanged(int angle);
-    void zRotationChanged(int angle);
+    void xRotationChanged(double angle);
+    void yRotationChanged(double angle);
+    void zRotationChanged(double angle);
+    void xTransitionChanged(double angle);
+    void yTransitionChanged(double angle);
+    void zTransitionChanged(double angle);
 
 protected:
     void initializeGL();
