@@ -56,6 +56,7 @@
 #include "public.h"
 #include "debug.h"
 #include "usropengl.h"
+#include "Matrices.h"
 
 //{xyz位移,xyz旋转角度}即在什么位置绕xyz分别转多少度
 float axes[][6] = {{0.,-0.,-1.,0.,0,0.},
@@ -232,12 +233,12 @@ void GLWidget::paintGL()
     //设置子坐标系，即旋转轴。
     //axes[0][3] = xRot/32.;
     //axes[0][4] = yRot/32.;
-    for(unsigned int i = 0; i < sizeof(filename)/sizeof(char *) && i < sizeof(rootName)/sizeof(char *); i++)
-    {
-        setModelMat(rootName[i], axes[i][0], axes[i][1], axes[i][2], axes[i][3],axes[i][4],axes[i][5]);
-    }
+    //for(unsigned int i = 0; i < sizeof(filename)/sizeof(char *) && i < sizeof(rootName)/sizeof(char *); i++)
+    //{
+    //    setModelMat(rootName[i], axes[i][0], axes[i][1], axes[i][2], axes[i][3],axes[i][4],axes[i][5]);
+    //}
     usrAiNodeRoot->callShowList();
-    usrAiNodeRoot->printAllNode();
+    //usrAiNodeRoot->printAllNode();
     //usrAiNodeRoot->printShowListsFromRoot();
 
     glPopMatrix();
@@ -261,13 +262,33 @@ void GLWidget::resizeGL(int width, int height)
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 }
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+    设置objname指定的node的模型变换矩阵。
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void GLWidget::setModelMat(const char *objname, GLfloat Tx, GLfloat Ty, GLfloat Tz, GLfloat Rx, GLfloat Ry, GLfloat Rz)
 {
-    aiMatrix4x4 m,out;
+    Matrix4 out;//单位矩阵
+
+#if 1 //使用新的Matrix4数据结构的算法
+    //先做移动，当前矩阵左乘以 移动矩阵
+    out.translate(Tx, Ty, Tz);
+    //再作旋转
+    out.rotateX(Rx);
+    out.rotateY(Ry);
+    out.rotateZ(Rz);
+#else //使用 aiMatriX4X4 时的实现算法
+    Matrix4 m,
     aiVector3D xyz(Tx,Ty,Tz);
-#if 1
-    m.Translation(xyz,m);
-    out = out * m;
+    m.Translation(xyz,m);//生成移动矩阵
+    out = out * m; // 右乘移动矩阵
     m.RotationX(Rx*PI/(180),m);
     out = out * m;
     m.RotationY(Ry*PI/(180),m);
@@ -275,15 +296,6 @@ void GLWidget::setModelMat(const char *objname, GLfloat Tx, GLfloat Ty, GLfloat 
     m.RotationZ(Rz*PI/(180),m);
     out = out * m;
 
-#else
-    aiMatrix4x4 n;
-    double mView[16] = {0}, mViewAfter[16]={0};
-    glGetDoublev(GL_MODELVIEW_MATRIX,mView);
-     set_aiMatrix4x4(m,mView);
-    glRotated(90, 1.0, 0.0, 0.0);
-    glRotated(yRot / 16.0, 0.0, 1.0, 0.0);
-    glRotated(zRot / 16.0, 0.0, 0.0, 1.0);
-    qDebug("xRot %f %f %f",xRot,yRot,zRot);
 #endif
     usrAiNodeRoot->setTranslationMatrix(objname,out);
 }

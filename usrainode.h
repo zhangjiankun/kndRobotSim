@@ -1,6 +1,7 @@
 #ifndef USRAINODE_H
 #define USRAINODE_H
-#include"assimp/scene.h"
+//#include"assimp/scene.h" 使用新的数据结构 Matrix4。
+#include "Matrices.h"
 #include<list>
 class usrAiNode
 {
@@ -8,6 +9,7 @@ public:
     usrAiNode() { // set all members to zero by default
         mParent = NULL;
         mName = NULL; fileName = NULL; ishidden = false;
+        mTransformation.identity();//init with identity
     }
 
     /** Construction from a specific name */
@@ -15,6 +17,7 @@ public:
         mParent = NULL;
         mName = name;
         fileName = NULL; ishidden = false;
+        mTransformation.identity();//init with identity
     }
 
     ~usrAiNode();
@@ -33,7 +36,7 @@ public:
     void delNodeFromTree(const char *objname, usrAiNode* Node);
     void rmShowList(const char *objname, int showlist);
     void callShowList();
-    void setTranslationMatrix(const char *objname, const aiMatrix4x4& m);
+    void setTranslationMatrix(const char *objname, const Matrix4& m);
     void printAllNode();
     void setHidden(bool hiddenflag) { ishidden = hiddenflag;}
     bool getHidden() { return ishidden = 0;}
@@ -41,6 +44,9 @@ public:
     void setXTransition(float xposition);
     void setYTransition(float yposition);
     void setZTransition(float zposition);
+    float getXPosition(){ return mTransformation.getPositionX(); }
+    float getYPosition(){ return mTransformation.getPositionY(); }
+    float getZPosition(){ return mTransformation.getPositionZ(); }
 
     void setXRotation(int angle);
     void setYRotation(int angle);
@@ -52,7 +58,7 @@ private:
     usrAiNode* mParent;
     const char *fileName;
     const char *mName;
-    aiMatrix4x4 mTransformation;
+    Matrix4 mTransformation;
     bool ishidden; //true表示隐藏，false显示
 
     std::list<usrAiNode *> childrenList;

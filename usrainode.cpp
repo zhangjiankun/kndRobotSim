@@ -225,9 +225,7 @@ void usrAiNode::callShowList()
     std::list<int>::iterator showlistiterator;
     std::list<usrAiNode *>::iterator childrenItem;
 
-
-    mTransformation.Transpose();
-    glMultMatrixf((float*)&mTransformation);
+    glMultMatrixf(mTransformation.getTranspose());
     for (showlistiterator=showList.begin();showlistiterator!=showList.end(); ++showlistiterator)
     {
       // dereference the iterator to get the element
@@ -246,27 +244,6 @@ void usrAiNode::callShowList()
         glPopMatrix();
         glPopAttrib();
     }
-}
-
-/*************************************************
-Function: // 函数名称
-Description: // 函数功能、性能等的描述
-Input: // 输入参数说明，包括每个参数的作
-// 用、取值说明及参数间关系。
-Output: // 对输出参数的说明。
-Return: // 函数返回值的说明
-Author: zhangjiankun
-Others: // 其它说明
-*************************************************/
-void usrAiNode::setTranslationMatrix(const char *objname, const aiMatrix4x4& m)
-{
-    usrAiNode * theFoundedNod = FindNode(objname);
-    if (NULL == theFoundedNod)
-    {
-        DEBUG_OUT("%s,%d:node not exist",__FILE__,__LINE__);
-        return;
-    }
-    theFoundedNod->mTransformation = m;
 }
 
 /*************************************************
@@ -317,6 +294,28 @@ void usrAiNode::printAllNode()
     std::cout<<std::endl;
 }
 
+
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+void usrAiNode::setTranslationMatrix(const char *objname, const Matrix4 & m)
+{
+    usrAiNode * theFoundedNod = FindNode(objname);
+    if (NULL == theFoundedNod)
+    {
+        DEBUG_OUT("%s,%d:node not exist",__FILE__,__LINE__);
+        return;
+    }
+    theFoundedNod->mTransformation = m;
+}
+
 /*************************************************
 Function: // 函数名称
 Description: // 函数功能、性能等的描述
@@ -329,7 +328,7 @@ Others: // 其它说明
 *************************************************/
 void usrAiNode::setXTransition(float xposition)
 {
-    setXYZTransition(xposition, 0., 0.);
+    mTransformation.setPositionX(xposition);
 }
 
 /*************************************************
@@ -344,7 +343,8 @@ Others: // 其它说明
 *************************************************/
 void usrAiNode::setYTransition(float yposition)
 {
-    setXYZTransition(0., yposition, 0.);
+    mTransformation.setPositionY(yposition);
+    std::cout<<mTransformation<<std::endl;
 }
 
 /*************************************************
@@ -359,7 +359,7 @@ Others: // 其它说明
 *************************************************/
 void usrAiNode::setZTransition(float zposition)
 {
-    setXYZTransition(0., 0., zposition);
+    mTransformation.setPositionZ(zposition);
 }
 
 /*************************************************
@@ -374,9 +374,7 @@ Others: // 其它说明
 *************************************************/
 void usrAiNode::setXYZTransition(float xposition, float yposition, float zposition)
 {
-    aiVector3D v(xposition,yposition,zposition);
-    aiMatrix4x4 out;
-    mTransformation = mTransformation.Translation(v, out) * mTransformation;
+    mTransformation.translate(xposition, yposition, zposition);
 }
 
 /*************************************************
@@ -391,7 +389,7 @@ Others: // 其它说明
 *************************************************/
 void usrAiNode::setXRotation(int angle)
 {
-    ;
+    mTransformation.rotateX(angle);
 }
 
 /*************************************************
@@ -406,8 +404,7 @@ Others: // 其它说明
 *************************************************/
 void usrAiNode::setYRotation(int angle)
 {
-
-    ;
+    mTransformation.rotateY(angle);
 }
 
 /*************************************************
@@ -422,6 +419,6 @@ Others: // 其它说明
 *************************************************/
 void usrAiNode::setZRotation(int angle)
 {
-    ;
+    mTransformation.rotateZ(angle);
 }
 

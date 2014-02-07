@@ -272,7 +272,9 @@ HEADERS += debug.h \
            code/BlenderDNA.inl \
     ui/modeltree.h \
     ui/position.h \
-    camera.h
+    camera.h \
+    Matrices.h \
+    Vectors.h
 FORMS += ui/controlPanel.ui \
     ui/modeltree.ui \
     ui/position.ui
@@ -422,7 +424,8 @@ SOURCES += glwidget.cpp \
            contrib/poly2tri/poly2tri/sweep/sweep_context.cc \
     ui/modeltree.cpp \
     ui/position.cpp \
-    camera.cpp
+    camera.cpp \
+    Matrices.cpp
 RESOURCES += RobotGUI.qrc
 QT           += opengl
 LIBS += -lGLU\
