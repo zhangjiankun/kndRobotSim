@@ -157,6 +157,7 @@ public:
     void        setPositionX(float x);
     void        setPositionY(float y);
     void        setPositionZ(float z);
+    void        setRotation(float angle, float x, float y, float z);
 
     float        getPositionX();
     float        getPositionY();
@@ -739,6 +740,28 @@ inline void Matrix4::setPositionY(float y)
 inline void Matrix4::setPositionZ(float z)
 {
     m[11] = z;
+}
+
+inline void Matrix4::setRotation(float angle, float x, float y, float z)
+{
+    float c = cosf(angle * 3.141593f / 180);    // cosine
+    float s = sinf(angle * 3.141593f / 180);    // sine
+    float xx = x * x;
+    float xy = x * y;
+    float xz = x * z;
+    float yy = y * y;
+    float yz = y * z;
+    float zz = z * z;
+
+    m[0] = xx * (1 - c) + c;
+    m[1] = xy * (1 - c) - z * s;
+    m[2] = xz * (1 - c) + y * s;
+    m[4] = xy * (1 - c) + z * s;
+    m[5] = yy * (1 - c) + c;
+    m[6] = yz * (1 - c) - x * s;
+    m[8] = xz * (1 - c) - y * s;
+    m[9] = yz * (1 - c) + x * s;
+    m[10]= zz * (1 - c) + c;
 }
 
 inline float Matrix4::getPositionX() { return m[3]; }

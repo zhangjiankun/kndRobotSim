@@ -41,16 +41,17 @@ public:
     void setHidden(bool hiddenflag) { ishidden = hiddenflag;}
     bool getHidden() { return ishidden = 0;}
 public:
-    void setXTransition(float xposition);
-    void setYTransition(float yposition);
-    void setZTransition(float zposition);
+    void setXTransition(float xposition) { mTransformation.setPositionX(xposition); }
+    void setYTransition(float yposition) { mTransformation.setPositionY(yposition); }
+    void setZTransition(float zposition) { mTransformation.setPositionZ(zposition); }
     float getXPosition(){ return mTransformation.getPositionX(); }
     float getYPosition(){ return mTransformation.getPositionY(); }
     float getZPosition(){ return mTransformation.getPositionZ(); }
+    void setRotation(double angle, float x, float y, float z) { return mTransformation.setRotation(angle,x,y,z);}
 
-    void setXRotation(int angle);
-    void setYRotation(int angle);
-    void setZRotation(int angle);
+    void setXRotation(int angle) { mTransformation.rotateX(angle); }
+    void setYRotation(int angle) { mTransformation.rotateY(angle); }
+    void setZRotation(int angle) { mTransformation.rotateZ(angle); }
 
 private:
     void setXYZTransition(float xposition, float yposition, float zposition);

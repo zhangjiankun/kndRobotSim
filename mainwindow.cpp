@@ -265,16 +265,10 @@ void MainWindow::showControlPanel()
 {
     if (!controlPanelUI) {
         controlPanelUI = new robotcontrolpanel(this);
-        #if 0
-        connect(controlPanelUI, SIGNAL (findNext(const QString &,
-                                            Qt::CaseSensitivity)),
-                spreadsheet, SLOT (findNext(const QString &,
-                                            Qt::CaseSensitivity)));
-        connect(controlPanelUI, SIGNAL(findPrevious(const QString &,
-                                                Qt::CaseSensitivity)),
-                 spreadsheet, SLOT(findPrevious(const QString &,
-                                                Qt::CaseSensitivity)));
-        #endif
+
+        connect(controlPanelUI, SIGNAL(axisRotationChanged(double *, int)),
+                glWidget, SLOT (upDateAxisesRotation(double *, int)) );
+
     }
     if (controlPanelUI->isHidden()) {
         controlPanelUI->show();

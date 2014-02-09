@@ -596,6 +596,41 @@ DEBUG_OUT("%s,%d:move y %f %s",__FILE__,__LINE__,zposition,currentNodeName);
 /*************************************************
 Function: // 函数名称
 Description: // 函数功能、性能等的描述
+更新各个轴的旋转值。
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+void GLWidget::upDateAxisesRotation(double *rotationArray, int sizeofArray)
+{
+    usrAiNode * theFoundedNod = NULL;
+
+    if (NULL == rotationArray || sizeofArray != sizeof(rootName)/sizeof(char *) - 1 ) {
+        qWarning("%s,%d:uncorrect rotationArray or size %d", __FILE__, __LINE__, sizeofArray);
+        return;
+    }
+
+    //循环各个轴，设置 模型变换矩阵
+    for(unsigned int i = 1; i < sizeof(rootName)/sizeof(char *); i++)  {
+        if (NULL != usrAiNodeRoot) {
+            theFoundedNod = usrAiNodeRoot->FindNode(rootName[i]);
+            if (NULL == theFoundedNod) {
+                DEBUG_OUT("%s,%d:node not exist",__FILE__,__LINE__);
+                return;
+            }
+            theFoundedNod->setRotation(rotationArray[i-1], 1, 0, 0); // 设置 模型变换矩阵
+            updateGL();
+        }
+    }
+}
+
+
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
 Input: // 输入参数说明，包括每个参数的作
 // 用、取值说明及参数间关系。
 Output: // 对输出参数的说明。

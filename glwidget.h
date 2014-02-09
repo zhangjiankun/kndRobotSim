@@ -64,6 +64,7 @@ public slots:
     void setYTransition(double yposition, const char * currentNodeName);
     void setZTransition(double zposition, const char * currentNodeName);
 
+    void upDateAxisesRotation(double *rotationArray, int sizeofArray);
     void setNode() {
         updateGL();
     }

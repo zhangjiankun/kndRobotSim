@@ -326,99 +326,9 @@ Return: // 函数返回值的说明
 Author: zhangjiankun
 Others: // 其它说明
 *************************************************/
-void usrAiNode::setXTransition(float xposition)
-{
-    mTransformation.setPositionX(xposition);
-}
-
-/*************************************************
-Function: // 函数名称
-Description: // 函数功能、性能等的描述
-Input: // 输入参数说明，包括每个参数的作
-// 用、取值说明及参数间关系。
-Output: // 对输出参数的说明。
-Return: // 函数返回值的说明
-Author: zhangjiankun
-Others: // 其它说明
-*************************************************/
-void usrAiNode::setYTransition(float yposition)
-{
-    mTransformation.setPositionY(yposition);
-    std::cout<<mTransformation<<std::endl;
-}
-
-/*************************************************
-Function: // 函数名称
-Description: // 函数功能、性能等的描述
-Input: // 输入参数说明，包括每个参数的作
-// 用、取值说明及参数间关系。
-Output: // 对输出参数的说明。
-Return: // 函数返回值的说明
-Author: zhangjiankun
-Others: // 其它说明
-*************************************************/
-void usrAiNode::setZTransition(float zposition)
-{
-    mTransformation.setPositionZ(zposition);
-}
-
-/*************************************************
-Function: // 函数名称
-Description: // 函数功能、性能等的描述
-Input: // 输入参数说明，包括每个参数的作
-// 用、取值说明及参数间关系。
-Output: // 对输出参数的说明。
-Return: // 函数返回值的说明
-Author: zhangjiankun
-Others: // 其它说明
-*************************************************/
 void usrAiNode::setXYZTransition(float xposition, float yposition, float zposition)
 {
     mTransformation.translate(xposition, yposition, zposition);
 }
 
-/*************************************************
-Function: // 函数名称
-Description: // 函数功能、性能等的描述
-Input: // 输入参数说明，包括每个参数的作
-// 用、取值说明及参数间关系。
-Output: // 对输出参数的说明。
-Return: // 函数返回值的说明
-Author: zhangjiankun
-Others: // 其它说明
-*************************************************/
-void usrAiNode::setXRotation(int angle)
-{
-    mTransformation.rotateX(angle);
-}
-
-/*************************************************
-Function: // 函数名称
-Description: // 函数功能、性能等的描述
-Input: // 输入参数说明，包括每个参数的作
-// 用、取值说明及参数间关系。
-Output: // 对输出参数的说明。
-Return: // 函数返回值的说明
-Author: zhangjiankun
-Others: // 其它说明
-*************************************************/
-void usrAiNode::setYRotation(int angle)
-{
-    mTransformation.rotateY(angle);
-}
-
-/*************************************************
-Function: // 函数名称
-Description: // 函数功能、性能等的描述
-Input: // 输入参数说明，包括每个参数的作
-// 用、取值说明及参数间关系。
-Output: // 对输出参数的说明。
-Return: // 函数返回值的说明
-Author: zhangjiankun
-Others: // 其它说明
-*************************************************/
-void usrAiNode::setZRotation(int angle)
-{
-    mTransformation.rotateZ(angle);
-}
 
