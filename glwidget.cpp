@@ -65,8 +65,8 @@ float axes[][6] = {{0.,-0.,-1.,0.,0,0.},
                    {0.,0.,-1.},
                    {0.,0.,-1.},
                    {0.,0.,-1.}};
-const char *rootName[] = {"world","S","L","U","R","B","T"};//world理解为 arm.
-const char *nodeAxis[] = {"worldAxis","SAxis","LAxis","UAxis","RAxis","BAxis","TAxis"};
+const char *rootName[] = {"base","S","L","U","R","B","T"};//world理解为 arm.
+const char *nodeAxis[] = {"baseAxis","SAxis","LAxis","UAxis","RAxis","BAxis","TAxis"};
 const char *filename[] = {
     "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-0.stl",
     "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-1.stl",
@@ -110,30 +110,49 @@ GLWidget::~GLWidget()
     //glDeleteLists(scene_list,1);
 }
 
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+ 构造如下轴连接关系：
+    baseAxis __ base
+             |
+             |_ SAxis __ S
+                      |
+                      |_ LAxis
+                          ...
+                              __ B
+                              |
+                              |_ TAxis __ T
 
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
 void GLWidget::creatBasicNodeTree()
 {
-    usrAiNodeRoot = new usrAiNode(rootName[0]);
-    //usrAiNode *tmp0 = new usrAiNode(nodeAxis[0]);
-    //usrAiNodeRoot->addNodeToTree(rootName[0],tmp0 );
+    unsigned int i = 0;//rootName index
+
+    // 创建baseAxis
+    usrAiNodeRoot = new usrAiNode(nodeAxis[0]);
+    usrAiNodeRoot->addShowListToNode(nodeAxis[0],makeWordPlane());
 
     //生成模型树，加载轴坐标（轴坐标随手臂一起运动，Txyz时针对root坐标的移动如果重合的话，参数为0即可）
-    for(unsigned int i = 1; i < sizeof(rootName)/sizeof(char *); i++)
-    {
-        usrAiNode *tmp = new usrAiNode(rootName[i]);
-        usrAiNode *tmp2 = new usrAiNode(nodeAxis[i]);
-        usrAiNodeRoot->addNodeToTree(rootName[i-1],tmp);
-        usrAiNodeRoot->addNodeToTree(rootName[i-1],tmp2);
-        usrAiNodeRoot->addShowListToNode(nodeAxis[i-1],makeWordPlane());
+    for( i = 1; i < sizeof(rootName)/sizeof(char *); i++)    {
+        usrAiNodeRoot->addNodeToTree(nodeAxis[i-1],new usrAiNode(rootName[i-1]));
+        usrAiNodeRoot->addNodeToTree(nodeAxis[i-1],new usrAiNode(nodeAxis[i]));
+        usrAiNodeRoot->addShowListToNode(nodeAxis[i],makeWordPlane());
     }
 
-    //在每个节点上加载手臂模型
-    for(unsigned int i = 0; i < sizeof(filename)/sizeof(char *) && i < sizeof(rootName)/sizeof(char *); i++)
-    {
-        //setModelMat(rootName[i], 0., 0., 0., axes[i][3],axes[i][4],axes[i][5]);
+    // 创建T
+    usrAiNodeRoot->addNodeToTree(nodeAxis[i-1],new usrAiNode(rootName[i-1]));
 
+    //在每个节点上加载手臂模型
+    for(unsigned int i = 0; i < sizeof(filename)/sizeof(char *) && i < sizeof(rootName)/sizeof(char *); i++)    {
         if( 0 != loadasset(filename[i])) {
-            DEBUG_OUT("load file %s failed!\n",filename[i]);
+            WAR_OUT("load file %s failed!\n",filename[i]);
         }
         DEBUG_OUT("load file %s success",filename[i]);
         usrAiNodeRoot->addNodeFileToNode(rootName[i],filename[i]);
@@ -614,9 +633,9 @@ void GLWidget::upDateAxisesRotation(double *rotationArray, int sizeofArray)
     }
 
     //循环各个轴，设置 模型变换矩阵
-    for(unsigned int i = 1; i < sizeof(rootName)/sizeof(char *); i++)  {
+    for(unsigned int i = 1; i < sizeof(nodeAxis)/sizeof(char *); i++)  {
         if (NULL != usrAiNodeRoot) {
-            theFoundedNod = usrAiNodeRoot->FindNode(rootName[i]);
+            theFoundedNod = usrAiNodeRoot->FindNode(nodeAxis[i]);
             if (NULL == theFoundedNod) {
                 DEBUG_OUT("%s,%d:node not exist",__FILE__,__LINE__);
                 return;
