@@ -10,7 +10,7 @@
 
 
 
-position::position(usrAiNode *Node, QWidget *parent) : //position 构建时，必须指定根节点。
+position::position(UsrAiNode *Node, QWidget *parent) : //position 构建时，必须指定根节点。
     QDialog(parent),
     ui(new Ui::position)
 {
@@ -33,10 +33,10 @@ position::~position()
 void position::modelUpdate()
 {
     QStringList items;
-    usrAiNode* positionInQue = NULL;
-    std::queue<usrAiNode *> aiNodeQue;
-    std::list<usrAiNode *>::iterator childrenItem;
-    std::list<usrAiNode *> tmpChildList;
+    UsrAiNode* positionInQue = NULL;
+    std::queue<UsrAiNode *> aiNodeQue;
+    std::list<UsrAiNode *>::iterator childrenItem;
+    std::list<UsrAiNode *> tmpChildList;
 
     if (NULL == root)
         return;
@@ -81,7 +81,7 @@ void position::setZTransition(double value)
 
 void position::on_comboBox_currentIndexChanged(const QString & text)  //下拉列表变化时，触发的设置spin的值。
 {
-    usrAiNode * theFoundedNod = NULL;
+    UsrAiNode * theFoundedNod = NULL;
     globel = text;
 
     if (NULL != root) {

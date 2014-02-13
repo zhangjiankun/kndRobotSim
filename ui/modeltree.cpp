@@ -5,7 +5,7 @@
 
 #include "../usrainode.h"
 
-modelTree::modelTree(usrAiNode *Node, QWidget *parent) :
+modelTree::modelTree(UsrAiNode *Node, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::modelTree)
 {
@@ -40,7 +40,7 @@ modelTree::~modelTree()
 
 void modelTree::slotHiddenModel()
 {
-    usrAiNode *Node = NULL;
+    UsrAiNode *Node = NULL;
 
     Node = NodeFromOut->FindNode(qPrintable(curItem->text(0)));
     Node->setHidden(true);
@@ -49,7 +49,7 @@ void modelTree::slotHiddenModel()
 
 void modelTree::slotShowModel()
 {
-    usrAiNode *Node = NULL;
+    UsrAiNode *Node = NULL;
 
     Node = NodeFromOut->FindNode(qPrintable(curItem->text(0)));
     Node->setHidden(false);
@@ -95,7 +95,7 @@ void modelTree::accept()
     }
 }
 
-void modelTree::showModelTree(usrAiNode *Node)
+void modelTree::showModelTree(UsrAiNode *Node)
 {
     //QSettings settings(organization, application);
     ui->treeWidget->clear();
@@ -107,10 +107,10 @@ void modelTree::showModelTree(usrAiNode *Node)
                    .arg(application).arg(organization));
 }
 
-void modelTree::addChildModels(usrAiNode *Node, QTreeWidgetItem *parent)
+void modelTree::addChildModels(UsrAiNode *Node, QTreeWidgetItem *parent)
 {
-    std::list<usrAiNode *>::iterator childrenItem;
-    std::list<usrAiNode *> tmpChildList = Node->getChildrenList();
+    std::list<UsrAiNode *>::iterator childrenItem;
+    std::list<UsrAiNode *> tmpChildList = Node->getChildrenList();
     QTreeWidgetItem *item;
 
     if (!parent)

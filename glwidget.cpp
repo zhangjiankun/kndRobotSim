@@ -58,7 +58,20 @@
 #include "usropengl.h"
 #include "Matrices.h"
 
+class RobotCfg
+{
+public:
+    RobotCfg();
+    RobotCfg(const char *xmlfilename);
+private:
+    char *rootName[];
+    char *nodeAxis[];
+    int  *axisRotation[];
+    float *axisPosition[];
+};
+
 //{xyz位移,xyz旋转角度}即在什么位置绕xyz分别转多少度
+
 float axes[][6] = {{0.,-0.,-1.,0.,0,0.},
                    {0.,0.,-1.},
                    {0.,0.,-1.},
@@ -67,6 +80,10 @@ float axes[][6] = {{0.,-0.,-1.,0.,0,0.},
                    {0.,0.,-1.}};
 const char *rootName[] = {"base","S","L","U","R","B","T"};//world理解为 arm.
 const char *nodeAxis[] = {"baseAxis","SAxis","LAxis","UAxis","RAxis","BAxis","TAxis"};
+const int axisRotation[][3] = { {0,0,0},{1,0,0},{1,0,0},{1,0,0},{1,0,0},{1,0,0},{1,0,0}};
+const float axisPosition[][3] = {{0.f,0.f,0.f},
+                                 {0.f,0.f,0.5f},{0.f,0.f,0.5f},{0.f,0.f,0.5f},
+                                 {0.f,0.f,0.3f},{0.f,0.f,0.3f},{0.f,0.f,0.3f}};
 const char *filename[] = {
     "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-0.stl",
     "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-1.stl",
@@ -76,6 +93,8 @@ const char *filename[] = {
     "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-5.stl",
     "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-6.stl",
 };
+
+
 
 GLWidget::GLWidget(QWidget *parent)
     : QGLWidget(parent)
@@ -136,21 +155,27 @@ void GLWidget::creatBasicNodeTree()
     unsigned int i = 0;//rootName index
 
     // 创建baseAxis
-    usrAiNodeRoot = new usrAiNode(nodeAxis[0]);
+    usrAiNodeRoot = new UsrAiNode(UsrAiNode::MODULE, nodeAxis[0]);
     usrAiNodeRoot->addShowListToNode(nodeAxis[0],makeWordPlane());
 
     //生成模型树，加载轴坐标（轴坐标随手臂一起运动，Txyz时针对root坐标的移动如果重合的话，参数为0即可）
-    for( i = 1; i < sizeof(rootName)/sizeof(char *); i++)    {
-        usrAiNodeRoot->addNodeToTree(nodeAxis[i-1],new usrAiNode(rootName[i-1]));
-        usrAiNodeRoot->addNodeToTree(nodeAxis[i-1],new usrAiNode(nodeAxis[i]));
+    for( i = 1; i < sizeof(rootName)/sizeof(char *); i++)
+    {
+        usrAiNodeRoot->addNodeToTree(nodeAxis[i-1],new UsrAiNode(UsrAiNode::MODULE, rootName[i-1]));
+        usrAiNodeRoot->addNodeToTree(nodeAxis[i-1],new UsrAiNode(UsrAiNode::AXIS, nodeAxis[i]));
         usrAiNodeRoot->addShowListToNode(nodeAxis[i],makeWordPlane());
+
+        usrAiNodeRoot->translateXYZ(nodeAxis[i], axisPosition[i][0], axisPosition[i][1], axisPosition[i][2]);
+
     }
 
     // 创建T
-    usrAiNodeRoot->addNodeToTree(nodeAxis[i-1],new usrAiNode(rootName[i-1]));
+    usrAiNodeRoot->addNodeToTree(nodeAxis[i-1],new UsrAiNode(UsrAiNode::MODULE, rootName[i-1]));
+
 
     //在每个节点上加载手臂模型
-    for(unsigned int i = 0; i < sizeof(filename)/sizeof(char *) && i < sizeof(rootName)/sizeof(char *); i++)    {
+    for(unsigned int i = 0; i < sizeof(filename)/sizeof(char *) && i < sizeof(rootName)/sizeof(char *); i++)
+    {
         if( 0 != loadasset(filename[i])) {
             WAR_OUT("load file %s failed!\n",filename[i]);
         }
@@ -257,6 +282,9 @@ void GLWidget::paintGL()
     //    setModelMat(rootName[i], axes[i][0], axes[i][1], axes[i][2], axes[i][3],axes[i][4],axes[i][5]);
     //}
     usrAiNodeRoot->callShowList();
+    usrAiNodeRoot->callShowList(UsrAiNode::AXIS);
+    DEBUG_OUT("call show UsrAiNode::AXIS:%d",UsrAiNode::AXIS);
+
     //usrAiNodeRoot->printAllNode();
     //usrAiNodeRoot->printShowListsFromRoot();
 
@@ -545,7 +573,7 @@ Others: // 其它说明
 *************************************************/
 void GLWidget::setXTransition(double xposition, const char * currentNodeName)
 {
-    usrAiNode * theFoundedNod = NULL;
+    UsrAiNode * theFoundedNod = NULL;
 
     if (NULL != usrAiNodeRoot) {
         theFoundedNod = usrAiNodeRoot->FindNode(currentNodeName);
@@ -571,7 +599,7 @@ Others: // 其它说明
 *************************************************/
 void GLWidget::setYTransition(double yposition, const char * currentNodeName)
 {
-    usrAiNode * theFoundedNod = NULL;
+    UsrAiNode * theFoundedNod = NULL;
 
     if (NULL != usrAiNodeRoot) {
         theFoundedNod = usrAiNodeRoot->FindNode(currentNodeName);
@@ -598,7 +626,7 @@ Others: // 其它说明
 *************************************************/
 void GLWidget::setZTransition(double zposition, const char * currentNodeName)
 {
-    usrAiNode * theFoundedNod = NULL;
+    UsrAiNode * theFoundedNod = NULL;
 
     if (NULL != usrAiNodeRoot) {
         theFoundedNod = usrAiNodeRoot->FindNode(currentNodeName);
@@ -625,7 +653,7 @@ Others: // 其它说明
 *************************************************/
 void GLWidget::upDateAxisesRotation(double *rotationArray, int sizeofArray)
 {
-    usrAiNode * theFoundedNod = NULL;
+    UsrAiNode * theFoundedNod = NULL;
 
     if (NULL == rotationArray || sizeofArray != sizeof(rootName)/sizeof(char *) - 1 ) {
         qWarning("%s,%d:uncorrect rotationArray or size %d", __FILE__, __LINE__, sizeofArray);

@@ -3,47 +3,49 @@
 //#include"assimp/scene.h" 使用新的数据结构 Matrix4。
 #include "Matrices.h"
 #include<list>
-class usrAiNode
+class UsrAiNode
 {
 public:
-    usrAiNode() { // set all members to zero by default
+    enum NodeType { AXIS, MODULE };
+    UsrAiNode() { // set all members to zero by default
         mParent = NULL;
-        mName = NULL; fileName = NULL; ishidden = false;
+        mName = NULL; fileName = NULL; ishidden = false; nodeType = MODULE;
         mTransformation.identity();//init with identity
     }
 
     /** Construction from a specific name */
-    usrAiNode(const char *name) { // set all members to zero by default
+    UsrAiNode(NodeType type, const char *name) { // set all members to zero by default
         mParent = NULL;
         mName = name;
-        fileName = NULL; ishidden = false;
+        fileName = NULL; ishidden = false; nodeType = type;
         mTransformation.identity();//init with identity
     }
 
-    ~usrAiNode();
-
-    usrAiNode* FindNode(const char* name);
+    ~UsrAiNode();
 
     inline void setFileName(char * file_Name) {
         fileName = file_Name;
     }
     inline const char * getmName() { return mName;}
-    inline std::list<usrAiNode *> getChildrenList() {return childrenList;}
+    inline std::list<UsrAiNode *> getChildrenList() {return childrenList;}
 
-    void addNodeToTree(const char *inobjname, usrAiNode* Node);
+    void addNodeToTree(const char *inobjname, UsrAiNode* Node);
     void addShowListToNode(const char *inobjname,int addlist);
     void addNodeFileToNode(const char *inobjname,const char *addlist);
-    void delNodeFromTree(const char *objname, usrAiNode* Node);
+    void delNodeFromTree(const char *objname, UsrAiNode* Node);
     void rmShowList(const char *objname, int showlist);
-    void callShowList();
+    void callShowList(NodeType type = MODULE);
     void setTranslationMatrix(const char *objname, const Matrix4& m);
     void printAllNode();
     void setHidden(bool hiddenflag) { ishidden = hiddenflag;}
     bool getHidden() { return ishidden = 0;}
+    UsrAiNode* FindNode(const char* name);//可以私有化。
 public:
     void setXTransition(float xposition) { mTransformation.setPositionX(xposition); }
     void setYTransition(float yposition) { mTransformation.setPositionY(yposition); }
     void setZTransition(float zposition) { mTransformation.setPositionZ(zposition); }
+    void translateXYZ(const char *inobjname, float xposition, float yposition, float zposition);
+
     float getXPosition(){ return mTransformation.getPositionX(); }
     float getYPosition(){ return mTransformation.getPositionY(); }
     float getZPosition(){ return mTransformation.getPositionZ(); }
@@ -53,18 +55,21 @@ public:
     void setYRotation(int angle) { mTransformation.rotateY(angle); }
     void setZRotation(int angle) { mTransformation.rotateZ(angle); }
 
+protected:
+    Matrix4 mTransformation;
 private:
     void setXYZTransition(float xposition, float yposition, float zposition);
 
-    usrAiNode* mParent;
-    const char *fileName;
-    const char *mName;
-    Matrix4 mTransformation;
+    UsrAiNode* mParent; //父结点
+    std::list<UsrAiNode *> childrenList; //字结点
+    NodeType nodeType;//结点类型
+
+    const char *fileName;//
+    const char *mName;//结点名字
     bool ishidden; //true表示隐藏，false显示
 
-    std::list<usrAiNode *> childrenList;
     std::list<unsigned int*> meshList;
-    std::list<int> showList;
+    std::list<int> showList;//结点下挂的显示列表
 };
 
 #endif // USRAINODE_H

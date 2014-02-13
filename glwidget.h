@@ -42,7 +42,7 @@
 #define GLWIDGET_H
 
 #include <QGLWidget>
-class usrAiNode;
+class UsrAiNode;
 class GLWidget : public QGLWidget
 {
     Q_OBJECT
@@ -50,7 +50,7 @@ class GLWidget : public QGLWidget
 public:
     GLWidget(QWidget *parent = 0);
     ~GLWidget();
-    inline usrAiNode *getNode() { return usrAiNodeRoot; }
+    inline UsrAiNode *getNode() { return usrAiNodeRoot; }
 
     int xRotation() const { return xRot; }
     int yRotation() const { return yRot; }
@@ -115,7 +115,6 @@ private:
     GLuint gear3;
     GLuint axis;
 
-
     int xRot;
     int yRot;
     int zRot;
@@ -127,7 +126,7 @@ private:
     int viewNearLenSteps;
     bool fullscreen; //全屏幕标志
     QPoint lastPos;
-    usrAiNode* usrAiNodeRoot;
+    UsrAiNode* usrAiNodeRoot;
     GLuint texture[1];
     //float axes[][6];
 

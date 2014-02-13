@@ -36,10 +36,10 @@ Return: // 函数返回值的说明
 Author: zhangjiankun
 Others: // 其它说明
 *************************************************/
-usrAiNode::~usrAiNode() //当节点时，下挂的所有节点也均释放
+UsrAiNode::~UsrAiNode() //当节点时，下挂的所有节点也均释放
 {
     std::list<int>::iterator showlistiterator;
-    std::list<usrAiNode *>::iterator childrenItem;
+    std::list<UsrAiNode *>::iterator childrenItem;
 
     if (!childrenList.empty())
     {
@@ -69,13 +69,13 @@ Return: // 函数返回值的说明
 Author: zhangjiankun
 Others: // 其它说明
 *************************************************/
-usrAiNode* usrAiNode::FindNode(const char* name)
+UsrAiNode* UsrAiNode::FindNode(const char* name)
 {
-    std::list<usrAiNode *>::iterator childrenItem;
+    std::list<UsrAiNode *>::iterator childrenItem;
     if (!::strcmp(mName,name))return this;
     for(childrenItem = childrenList.begin(); childrenItem != childrenList.end(); ++childrenItem)
     {
-        usrAiNode* p = (*childrenItem)->FindNode(name);
+        UsrAiNode* p = (*childrenItem)->FindNode(name);
         if (p)return p;
     }
 
@@ -92,9 +92,9 @@ Return: // 函数返回值的说明
 Author: zhangjiankun
 Others: // 其它说明
 *************************************************/
-void usrAiNode::addNodeToTree(const char* objname, usrAiNode* Node)
+void UsrAiNode::addNodeToTree(const char* objname, UsrAiNode* Node)
 {
-    usrAiNode * theFoundedNod = FindNode(objname);
+    UsrAiNode * theFoundedNod = FindNode(objname);
     if (NULL == theFoundedNod)
     {
         DEBUG_OUT("node not exist");
@@ -114,9 +114,9 @@ Return: // 函数返回值的说明
 Author: zhangjiankun
 Others: // 其它说明
 *************************************************/
-void usrAiNode::addShowListToNode(const char *objname,int addlist)
+void UsrAiNode::addShowListToNode(const char *objname,int addlist)
 {
-    usrAiNode * theFoundedNod = FindNode(objname);
+    UsrAiNode * theFoundedNod = FindNode(objname);
     if (NULL == theFoundedNod)
     {
         DEBUG_OUT("%s,%d:node not exist",__FILE__,__LINE__);
@@ -135,9 +135,9 @@ Return: // 函数返回值的说明
 Author: zhangjiankun
 Others: // 其它说明
 *************************************************/
-void usrAiNode::addNodeFileToNode(const char *objname, const char *file_name)
+void UsrAiNode::addNodeFileToNode(const char *objname, const char *file_name)
 {
-    usrAiNode * theFoundedNod = FindNode(objname);
+    UsrAiNode * theFoundedNod = FindNode(objname);
     if (NULL == theFoundedNod)
     {
         DEBUG_OUT("%s,%d:node not exist",__FILE__,__LINE__);
@@ -146,10 +146,10 @@ void usrAiNode::addNodeFileToNode(const char *objname, const char *file_name)
     theFoundedNod->fileName = file_name;
 }
 #if 0
-void usrAiNode::printShowListsFromRoot()
+void UsrAiNode::printShowListsFromRoot()
 {
     std::list<int>::iterator showlistiterator;
-    std::list<usrAiNode *>::iterator childrenitem;
+    std::list<UsrAiNode *>::iterator childrenitem;
 
     //print world root node's showLists
     for (showlistiterator=showList.begin();showlistiterator!=showList.end(); ++showlistiterator)
@@ -176,9 +176,9 @@ Return: // 函数返回值的说明
 Author: zhangjiankun
 Others: // 其它说明
 *************************************************/
-void usrAiNode::delNodeFromTree(const char *objname, usrAiNode* Node)
+void UsrAiNode::delNodeFromTree(const char *objname, UsrAiNode* Node)
 {
-    usrAiNode * theFoundedNod = FindNode(objname);
+    UsrAiNode * theFoundedNod = FindNode(objname);
     if (NULL == theFoundedNod)
     {
         DEBUG_OUT("node not exist");
@@ -197,9 +197,9 @@ Return: // 函数返回值的说明
 Author: zhangjiankun
 Others: // 其它说明
 *************************************************/
-void usrAiNode::rmShowList(const char *objname, int showlist)
+void UsrAiNode::rmShowList(const char *objname, int showlist)
 {
-    usrAiNode * theFoundedNod = FindNode(objname);
+    UsrAiNode * theFoundedNod = FindNode(objname);
     if (NULL == theFoundedNod)
     {
         DEBUG_OUT("node not exist");
@@ -220,17 +220,18 @@ Return: // 函数返回值的说明
 Author: zhangjiankun
 Others: // 其它说明
 *************************************************/
-void usrAiNode::callShowList()
+void UsrAiNode::callShowList(NodeType type)
 {
     std::list<int>::iterator showlistiterator;
-    std::list<usrAiNode *>::iterator childrenItem;
+    std::list<UsrAiNode *>::iterator childrenItem;
 
     glMultMatrixf(mTransformation.getTranspose());
     for (showlistiterator=showList.begin();showlistiterator!=showList.end(); ++showlistiterator)
     {
       // dereference the iterator to get the element
         //DEBUG_OUT("call show list:%d",*showlistiterator);
-        if (false == ishidden) {
+        if (false == ishidden && type == nodeType) {
+
             glCallList(*showlistiterator);
         }
     }
@@ -240,7 +241,7 @@ void usrAiNode::callShowList()
         glPushMatrix();
         //在绘制每个物体前应该把当前状态先保存到堆栈中，再等绘制完后取出原来的状态
         glPushAttrib(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_CURRENT_BIT);
-        (*childrenItem)->callShowList();
+        (*childrenItem)->callShowList(type);
         glPopMatrix();
         glPopAttrib();
     }
@@ -256,12 +257,12 @@ Return: // 函数返回值的说明
 Author: zhangjiankun
 Others: // 其它说明
 *************************************************/
-void usrAiNode::printAllNode()
+void UsrAiNode::printAllNode()
 {
-    usrAiNode* positionInQue = NULL;
-    std::queue<usrAiNode *> aiNodeQue;
+    UsrAiNode* positionInQue = NULL;
+    std::queue<UsrAiNode *> aiNodeQue;
     std::list<int>::iterator showlistiterator;
-    std::list<usrAiNode *>::iterator childrenItem;
+    std::list<UsrAiNode *>::iterator childrenItem;
 
     std::cout<<"nodeName ";
     //层序遍历
@@ -305,12 +306,12 @@ Return: // 函数返回值的说明
 Author: zhangjiankun
 Others: // 其它说明
 *************************************************/
-void usrAiNode::setTranslationMatrix(const char *objname, const Matrix4 & m)
+void UsrAiNode::setTranslationMatrix(const char *objname, const Matrix4 & m)
 {
-    usrAiNode * theFoundedNod = FindNode(objname);
+    UsrAiNode * theFoundedNod = FindNode(objname);
     if (NULL == theFoundedNod)
     {
-        DEBUG_OUT("%s,%d:node not exist",__FILE__,__LINE__);
+        WAR_OUT("%s,%d:node not exist",__FILE__,__LINE__);
         return;
     }
     theFoundedNod->mTransformation = m;
@@ -319,6 +320,7 @@ void usrAiNode::setTranslationMatrix(const char *objname, const Matrix4 & m)
 /*************************************************
 Function: // 函数名称
 Description: // 函数功能、性能等的描述
+    找到节点inobjname，并执行x,y,z方向的位移。
 Input: // 输入参数说明，包括每个参数的作
 // 用、取值说明及参数间关系。
 Output: // 对输出参数的说明。
@@ -326,9 +328,16 @@ Return: // 函数返回值的说明
 Author: zhangjiankun
 Others: // 其它说明
 *************************************************/
-void usrAiNode::setXYZTransition(float xposition, float yposition, float zposition)
+void UsrAiNode::translateXYZ(const char *inobjname, float xposition, float yposition, float zposition)
 {
-    mTransformation.translate(xposition, yposition, zposition);
+    UsrAiNode * theFoundedNod = FindNode(inobjname);
+    if (NULL == theFoundedNod)
+    {
+        WAR_OUT("%s,%d:node not exist",__FILE__,__LINE__);
+        return;
+    }
+
+    theFoundedNod->mTransformation.translate(xposition, yposition, zposition);
 }
 
 

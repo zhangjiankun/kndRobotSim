@@ -7,7 +7,7 @@ class QDialogButtonBox;
 class QSettings;
 class QTreeWidget;
 class QTreeWidgetItem;
-class usrAiNode;
+class UsrAiNode;
 namespace Ui {
 class modelTree;
 }
@@ -17,7 +17,7 @@ class modelTree : public QDialog
     Q_OBJECT
     
 public:
-    explicit modelTree(usrAiNode *Node, QWidget *parent) ;
+    explicit modelTree(UsrAiNode *Node, QWidget *parent) ;
     ~modelTree();
 signals:
     void sigAddChildrenModel();
@@ -29,8 +29,8 @@ private slots:
     void slotShowModel();
 
 private:
-    void showModelTree(usrAiNode *Node);
-    void addChildModels(usrAiNode *Node, QTreeWidgetItem *parent);
+    void showModelTree(UsrAiNode *Node);
+    void addChildModels(UsrAiNode *Node, QTreeWidgetItem *parent);
     void contextMenuEvent(QContextMenuEvent * event);
     void creatModelTreeActions();
 
@@ -42,7 +42,7 @@ private:
     QAction* ModelPosition;
     QAction* HiddenModel;
     QAction* ShowModel;
-    usrAiNode *NodeFromOut;//结点指针
+    UsrAiNode *NodeFromOut;//结点指针
     QTreeWidgetItem *curItem;//鼠标右键时指定的item
 };
 
