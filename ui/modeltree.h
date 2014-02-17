@@ -27,6 +27,8 @@ private slots:
     void accept();
     void slotHiddenModel();
     void slotShowModel();
+    void slotHiddenModelFromNode();
+    void slotShowModelFromRoot();
 
 private:
     void showModelTree(UsrAiNode *Node);
@@ -41,7 +43,9 @@ private:
     QAction* AddChildrenModel;
     QAction* ModelPosition;
     QAction* HiddenModel;
+    QAction* HiddenModelFromNode;
     QAction* ShowModel;
+    QAction* ShowModelFromRoot;
     UsrAiNode *NodeFromOut;//结点指针
     QTreeWidgetItem *curItem;//鼠标右键时指定的item
 };

@@ -36,6 +36,8 @@ modelTree::~modelTree()
     delete ModelPosition;
     delete HiddenModel;
     delete ShowModel;
+    delete HiddenModelFromNode;
+    delete ShowModelFromRoot;
 }
 
 void modelTree::slotHiddenModel()
@@ -43,7 +45,23 @@ void modelTree::slotHiddenModel()
     UsrAiNode *Node = NULL;
 
     Node = NodeFromOut->FindNode(qPrintable(curItem->text(0)));
-    Node->setHidden(true);
+    Node->setHiddenFlagByName(true);
+    emit modelChanged();
+}
+
+void modelTree::slotHiddenModelFromNode()
+{
+    UsrAiNode *Node = NULL;
+    Node = NodeFromOut->FindNode(qPrintable(curItem->text(0)));
+    Node->setHiddenFlagRecs(true);
+    emit modelChanged();
+}
+
+void modelTree::slotShowModelFromRoot()
+{
+    UsrAiNode *Node = NULL;
+    Node = NodeFromOut->FindNode(qPrintable(curItem->text(0)));
+    Node->setHiddenFlagRecs(false);
     emit modelChanged();
 }
 
@@ -52,7 +70,7 @@ void modelTree::slotShowModel()
     UsrAiNode *Node = NULL;
 
     Node = NodeFromOut->FindNode(qPrintable(curItem->text(0)));
-    Node->setHidden(false);
+    Node->setHiddenFlagByName(false);
     emit modelChanged();
 }
 
@@ -114,7 +132,14 @@ void modelTree::addChildModels(UsrAiNode *Node, QTreeWidgetItem *parent)
     QTreeWidgetItem *item;
 
     if (!parent)
+    {
         parent = ui->treeWidget->invisibleRootItem();
+        //添加根结点
+        item = new QTreeWidgetItem(parent);
+        item->setText(0,Node->getmName());
+        addChildModels(Node, item);
+        return;
+    }
 
     for(childrenItem = tmpChildList.begin(); childrenItem != tmpChildList.end(); ++childrenItem)
     {
@@ -136,8 +161,14 @@ void modelTree::creatModelTreeActions()
     HiddenModel = new QAction(tr("&Hidden"), this);
     connect(HiddenModel, SIGNAL(triggered()), this, SLOT(slotHiddenModel()));
 
+    HiddenModelFromNode = new QAction(tr("HiddenFromRoot"), this);
+    connect(HiddenModelFromNode, SIGNAL(triggered()), this, SLOT(slotHiddenModelFromNode()));
+
     ShowModel = new QAction(tr("&ShowModel"), this);
     connect(ShowModel, SIGNAL(triggered()), this, SLOT(slotShowModel()));
+
+    ShowModelFromRoot = new QAction(tr("ShowModelFromRoot"), this);
+    connect(ShowModelFromRoot, SIGNAL(triggered()), this, SLOT(slotShowModelFromRoot()));
 }
 
 void modelTree::contextMenuEvent(QContextMenuEvent * event)
@@ -160,7 +191,9 @@ void modelTree::contextMenuEvent(QContextMenuEvent * event)
     qMenu->addAction(AddChildrenModel);
     qMenu->addAction(ModelPosition);
     qMenu->addAction(HiddenModel);
+    qMenu->addAction(HiddenModelFromNode);
     qMenu->addAction(ShowModel);
+    qMenu->addAction(ShowModelFromRoot);
     qMenu->exec(QCursor::pos()); //在鼠标点击的位置显示鼠标右键菜单
 }
 

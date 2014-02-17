@@ -22,7 +22,7 @@ GLuint makeWordPlane(GLfloat xTra, GLfloat yTra, GLfloat zTra, GLfloat xRot, GLf
     glPushAttrib(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_CURRENT_BIT);
     transRotaint( xTra,  yTra,  zTra,  xRot,  yRot, zRot);
     glDisable(GL_LIGHTING);
-    glDisable(GL_DEPTH_TEST);
+    //glDisable(GL_DEPTH_TEST);
 
 
     glColor3f(1.f, 0.0f, 0.0f);//red -> x

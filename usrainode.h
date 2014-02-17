@@ -23,42 +23,59 @@ public:
 
     ~UsrAiNode();
 
-    inline void setFileName(char * file_Name) {
-        fileName = file_Name;
-    }
-    inline const char * getmName() { return mName;}
+    //以下函数只处理单个结点
     inline std::list<UsrAiNode *> getChildrenList() {return childrenList;}
+    std::list<UsrAiNode *> getChildrenList(const char *objname);
 
-    void addNodeToTree(const char *inobjname, UsrAiNode* Node);
-    void addShowListToNode(const char *inobjname,int addlist);
-    void addNodeFileToNode(const char *inobjname,const char *addlist);
-    void delNodeFromTree(const char *objname, UsrAiNode* Node);
-    void rmShowList(const char *objname, int showlist);
-    void callShowList(NodeType type = MODULE);
-    void setTranslationMatrix(const char *objname, const Matrix4& m);
-    void printAllNode();
-    void setHidden(bool hiddenflag) { ishidden = hiddenflag;}
-    bool getHidden() { return ishidden = 0;}
-    UsrAiNode* FindNode(const char* name);//可以私有化。
+    inline const char * getmName() { return mName;}
+    const char * getmName(const char *objname);
+
+    void addNodeToTree(UsrAiNode* Node, const char *objname = NULL);
+    void delNodeFromTree(const char *objname);
+
+    void setFileNameByNode(const char *nodeFileName, const char *objname = NULL);
+
+    void addShowListToNode(int addlist, const char *objname = NULL);
+    void rmShowList(int showlist, const char *objname = NULL);
+
+    void setTranslationMatrix(const Matrix4& m, const char *objname = NULL);
+
+    bool getHidden(const char *objname);
+    void setHiddenFlagByName(bool hiddenFlag, const char *objname = NULL);
+
+    //以下函数递归处理所有结点
+    void callShowList(NodeType type = MODULE);//递归显示以当前结点为根结点的所有结点的显示列表。
+    void printAllNode(); //递归显示所有结点的显示列表
+    void setHiddenFlagRecs(bool hiddenflag);
+
+    UsrAiNode* FindNode(const char* name);//
 public:
     void setXTransition(float xposition) { mTransformation.setPositionX(xposition); }
     void setYTransition(float yposition) { mTransformation.setPositionY(yposition); }
     void setZTransition(float zposition) { mTransformation.setPositionZ(zposition); }
-    void translateXYZ(const char *inobjname, float xposition, float yposition, float zposition);
+    void translateXYZ(const char *objname, float xposition, float yposition, float zposition);
 
     float getXPosition(){ return mTransformation.getPositionX(); }
     float getYPosition(){ return mTransformation.getPositionY(); }
     float getZPosition(){ return mTransformation.getPositionZ(); }
-    void setRotation(double angle, float x, float y, float z) { return mTransformation.setRotation(angle,x,y,z);}
 
-    void setXRotation(int angle) { mTransformation.rotateX(angle); }
-    void setYRotation(int angle) { mTransformation.rotateY(angle); }
-    void setZRotation(int angle) { mTransformation.rotateZ(angle); }
+    void RotationX(float angle) { mTransformation.rotateX(angle); }
+    void RotationY(float angle) { mTransformation.rotateY(angle); }
+    void RotationZ(float angle) { mTransformation.rotateZ(angle); }
+    void RotationXYZ(float angle, float x, float y, float z,const char *objname = NULL);
+    void RotationXYZ(const char *objname,float angle, float x, float y, float z)
+    {  RotationXYZ( angle,  x,  y,  z, objname);}
+
+    void setRotateXYZ(double angle, float x, float y, float z, const char *objname = NULL);
+
+
 
 protected:
     Matrix4 mTransformation;
+
 private:
     void setXYZTransition(float xposition, float yposition, float zposition);
+    void recureProcess( void *(*pFnProc)(UsrAiNode *), void(*pFnFinaleProc)(void *)); //该函数不用，用作代码模板
 
     UsrAiNode* mParent; //父结点
     std::list<UsrAiNode *> childrenList; //字结点

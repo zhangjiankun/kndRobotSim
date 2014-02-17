@@ -274,7 +274,8 @@ HEADERS += debug.h \
     ui/position.h \
     camera.h \
     Matrices.h \
-    Vectors.h
+    Vectors.h \
+    robotmodelcfg.h
 FORMS += ui/controlPanel.ui \
     ui/modeltree.ui \
     ui/position.ui
@@ -425,7 +426,8 @@ SOURCES += glwidget.cpp \
     ui/modeltree.cpp \
     ui/position.cpp \
     camera.cpp \
-    Matrices.cpp
+    Matrices.cpp \
+    robotmodelcfg.cpp
 RESOURCES += RobotGUI.qrc
 QT           += opengl
 LIBS += -lGLU\

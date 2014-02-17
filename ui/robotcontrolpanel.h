@@ -10,27 +10,27 @@ public:
 signals:
     void axisRotationChanged(double *rotationArray, int sizeofArray);
 private slots:
-    void on_SpinBox_S_editingFinished(){
+    void on_SpinBox_S_valueChanged(){
         rotationArray[S] = SpinBox_S->value();;
         emit axisRotationChanged(rotationArray, sizeof(rotationArray)/sizeof(double));
     }
-    void on_SpinBox_L_editingFinished(){
+    void on_SpinBox_L_valueChanged(){
         rotationArray[L] = SpinBox_L->value();
         emit axisRotationChanged(rotationArray, sizeof(rotationArray)/sizeof(double));
     }
-    void on_SpinBox_U_editingFinished(){
+    void on_SpinBox_U_valueChanged(){
         rotationArray[U] = SpinBox_U->value();;
         emit axisRotationChanged(rotationArray, sizeof(rotationArray)/sizeof(double));
     }
-    void on_SpinBox_R_editingFinished(){
+    void on_SpinBox_R_valueChanged(){
         rotationArray[R] = SpinBox_R->value();;
         emit axisRotationChanged(rotationArray, sizeof(rotationArray)/sizeof(double));
     }
-    void on_SpinBox_B_editingFinished(){
+    void on_SpinBox_B_valueChanged(){
         rotationArray[B] = SpinBox_B->value();;
         emit axisRotationChanged(rotationArray, sizeof(rotationArray)/sizeof(double));
     }
-    void on_SpinBox_T_editingFinished(){
+    void on_SpinBox_T_valueChanged(){
         rotationArray[T] = SpinBox_T->value();;
         emit axisRotationChanged(rotationArray, sizeof(rotationArray)/sizeof(double));
     }

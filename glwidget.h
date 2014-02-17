@@ -43,6 +43,7 @@
 
 #include <QGLWidget>
 class UsrAiNode;
+class RobotModelCfg;
 class GLWidget : public QGLWidget
 {
     Q_OBJECT
@@ -108,6 +109,7 @@ private:
     void setFrustum(float l, float r, float b, float t, float n, float f, float floatArry[]);
     void setModelMat(const char *objname, GLfloat Tx, GLfloat Ty, GLfloat Tz, GLfloat Rx, GLfloat Ry, GLfloat Rz);
     void loadGLTextures(const char *fileName);//载入纹理
+    void getfps(void);
 
     //显示列表
     GLuint gear1;
@@ -127,6 +129,7 @@ private:
     bool fullscreen; //全屏幕标志
     QPoint lastPos;
     UsrAiNode* usrAiNodeRoot;
+    RobotModelCfg * modelCfgData;
     GLuint texture[1];
     //float axes[][6];
 
