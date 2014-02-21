@@ -1,0 +1,17 @@
+A consistent naming convention greatly improves the readability and maintainability of a program. ￼
+1.Class names begin with a capital letter: class Customer
+2.Function names begin with a lowercase letter.
+Although permitted by the compiler, periods, underscores, dashes, and funny characters should be avoided whenever possible (except where noted below).
+3.Multi-word names have subsequent words capitalized: class FileTagger void getStudentInfo() for example.
+4.Constants should be in CAPS.
+5.Each class name should be a noun or a noun phrase: class LargeFurryMammal; for example.
+6.Each function name should be a verb or a verb phrase: processBookOrder(); for example.
+7.Each bool variable name should produce a reasonable approximation of a sentence when used in an if() statement: bool isQualified; for example. 
+For data members, we use a common prefix. 
+8.Member name: m_Color, m_Width (prepend lowercase m_)
+9.static data members: sm_Singleton, sm_ObjCount 
+For each attribute, we have naming conventions for their corresponding getters/setters. 
+10.Non-boolean getters: color() or getColor()
+   The latter is Java style, the former is Qt style. Both conventions are widely used. Try to be consistent in your code.
+11.Boolean getters: isChecked() or isValid()
+12.Setter: setColor(const Color& newColor); 
