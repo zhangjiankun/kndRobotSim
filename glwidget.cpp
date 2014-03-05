@@ -57,33 +57,9 @@
 #include "debug.h"
 #include "usropengl.h"
 #include "Matrices.h"
-#include "robotmodelcfg.h"
+#include "RobotModelCfg.h"
 
 #include <QTime> // 记时用。
-
-
-
-
-const char *rootName[] = {"base","S","L","U","R","B","T"};//world理解为 arm.
-const char *nodeAxis[] = {"baseAxis","SAxis","LAxis","UAxis","RAxis","BAxis","TAxis"};
-
-//上一个电机移动到当前电机坐标时，转动轴的方向
-const float axisRotation[][3] = { {0,0,1},
-                                {0,0,1},{0,1,0},{0,-1,0},
-                                {1,0,0},{0,1,0},{1,0,0}};
-//表中当前项坐标减去上一个坐标的值，表示当前坐标相对上一个坐标的位移。
-const float axisPosition[][3] = {{0.f,0.f,0.f},
-                                 {0.f,0.f,-2.9f},{1.4f,1.3f,0.0f},{1.5f,1.3f,8.8f},
-                                 {4.6f,0.f,10.5f},{11.7f,-1.2f,10.5f},{13.3f,0.f,10.5f}};
-const char *filename[] = {
-    "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-0.stl",
-    "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-1.stl",
-    "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-2.stl",
-    "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-3.stl",
-    "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-4.stl",
-    "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-5.stl",
-    "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-6.stl",
-};
 
 
 GLWidget::GLWidget(QWidget *parent)
@@ -103,9 +79,9 @@ GLWidget::GLWidget(QWidget *parent)
     fullscreen = false;
     modelCfgData = new RobotModelCfg;
     setFocusPolicy(Qt::StrongFocus);
-    //QTimer *timer = new QTimer(this);
-    //connect(timer, SIGNAL(timeout()), this, SLOT(advanceGears()));
-    //timer->start(20);
+//    QTimer *timer = new QTimer(this);
+//    connect(timer, SIGNAL(timeout()), this, SLOT(advanceGears()));
+//    timer->start(20);
 }
 
 GLWidget::~GLWidget()
@@ -145,43 +121,51 @@ Others: // 其它说明
 void GLWidget::creatBasicNodeTree()
 {
     unsigned int i = 0;//rootName index
+    float *positionAxis = NULL;
 
     // 创建baseAxis
-    usrAiNodeRoot = new UsrAiNode(UsrAiNode::AXIS, modelCfgData->get_nodeAxis(0));
-    usrAiNodeRoot->addShowListToNode(makeWordPlane(), modelCfgData->get_nodeAxis(0));
+    usrAiNodeRoot = new UsrAiNode(UsrAiNode::AXIS, modelCfgData->get_nodeAxisName(0)); //当前结点为坐标轴
+    usrAiNodeRoot->addShowListToNode(makeWordPlane(), modelCfgData->get_nodeAxisName(0));
 
     //生成模型树，加载轴坐标（轴坐标随手臂一起运动，Txyz时针对root坐标的移动如果重合的话，参数为0即可）
     for( i = 1; i < modelCfgData->getAxisNum(); i++)
     {
+        positionAxis = modelCfgData->get_axisPosition(i-1);
         usrAiNodeRoot->addNodeToTree(new UsrAiNode(UsrAiNode::MODULE, modelCfgData->get_rootName(i-1)),
-                                     modelCfgData->get_nodeAxis(i-1));
-        usrAiNodeRoot->addNodeToTree(new UsrAiNode(UsrAiNode::AXIS, modelCfgData->get_nodeAxis(i)),
-                                     modelCfgData->get_nodeAxis(i-1));
-        usrAiNodeRoot->addShowListToNode(makeWordPlane(), modelCfgData->get_nodeAxis(i));
+                                     modelCfgData->get_nodeAxisName(i-1));
+        usrAiNodeRoot->addNodeToTree(new UsrAiNode(UsrAiNode::AXIS, modelCfgData->get_nodeAxisName(i)),
+                                     modelCfgData->get_nodeAxisName(i-1));
+        usrAiNodeRoot->addShowListToNode(makeWordPlane(), modelCfgData->get_nodeAxisName(i));
 
         //移动坐标轴到转轴原点
-        usrAiNodeRoot->translateXYZ(modelCfgData->get_nodeAxis(i-1), axisPosition[i-1][0], axisPosition[i-1][1], axisPosition[i-1][2]);
+        usrAiNodeRoot->translateXYZ(modelCfgData->get_nodeAxisName(i-1), positionAxis[0], positionAxis[1], positionAxis[2]);
 
         //消除转轴移动导致的该坐标下的物体位置移动。
-        usrAiNodeRoot->translateXYZ(modelCfgData->get_rootName(i-1), 0-axisPosition[i-1][0], 0-axisPosition[i-1][1], 0-axisPosition[i-1][2]);
-        usrAiNodeRoot->translateXYZ(modelCfgData->get_nodeAxis(i), 0-axisPosition[i-1][0], 0-axisPosition[i-1][1], 0-axisPosition[i-1][2]);
+        usrAiNodeRoot->translateXYZ(modelCfgData->get_rootName(i-1), 0-positionAxis[0], 0-positionAxis[1], 0-positionAxis[2]);
+        usrAiNodeRoot->translateXYZ(modelCfgData->get_nodeAxisName(i), 0-positionAxis[0], 0-positionAxis[1], 0-positionAxis[2]);
     }
 
     // 将上面for循环里面的步骤，作用到最后一个结点上。
     usrAiNodeRoot->addNodeToTree(new UsrAiNode(UsrAiNode::MODULE,
-                                               modelCfgData->get_rootName(i-1)), modelCfgData->get_nodeAxis(i-1));
+                                               modelCfgData->get_rootName(i-1)), modelCfgData->get_nodeAxisName(i-1));
 
-    usrAiNodeRoot->translateXYZ(modelCfgData->get_nodeAxis(i-1), axisPosition[i-1][0], axisPosition[i-1][1], axisPosition[i-1][2]);
-    usrAiNodeRoot->translateXYZ(modelCfgData->get_rootName(i-1), 0-axisPosition[i-1][0], 0-axisPosition[i-1][1], 0-axisPosition[i-1][2]);
+    positionAxis = modelCfgData->get_axisPosition(i-1);
+    usrAiNodeRoot->translateXYZ(modelCfgData->get_nodeAxisName(i-1), positionAxis[0], positionAxis[1], positionAxis[2]);
+    usrAiNodeRoot->translateXYZ(modelCfgData->get_rootName(i-1), 0-positionAxis[0], 0-positionAxis[1], 0-positionAxis[2]);
 
     //在每个节点上加载手臂模型
     for(unsigned int i = 0; i < modelCfgData->getAxisNum(); i++)
     {
-        if( 0 != loadasset(modelCfgData->get_filename(i))) {
+        if( 0 != loadasset(modelCfgData->get_filename(i)))
+        {
             WAR_OUT("load file %s failed!\n",modelCfgData->get_filename(i));
         }
+
+        float * axisRotation = modelCfgData->get_axisRotation(i);
         usrAiNodeRoot->setFileNameByNode(modelCfgData->get_filename(i),modelCfgData->get_rootName(i) );
         usrAiNodeRoot->addShowListToNode(makeLoadObj(),modelCfgData->get_rootName(i));
+        usrAiNodeRoot->setRotationAxis(axisRotation[0], axisRotation[1], axisRotation[2],
+                                       modelCfgData->get_nodeAxisName(i));
         aiReleaseImport(scene);
     }
 
@@ -454,7 +438,7 @@ void GLWidget::getfps(void)
     if (time.elapsed() < 1000 && started == true)//如果已经开始计时，则每秒刷新一次
     {
         frames ++;
-        renderText(width() - 60, height() - 20, "FPS: " + tmpStr);//最终结果在窗口中渲染
+        renderText(width() - 60, height() - 20, "FPS: " + tmpStr, QFont("times", 15));//最终结果在窗口中渲染
     }
     else
     {
@@ -680,19 +664,21 @@ Others: // 其它说明
 *************************************************/
 void GLWidget::upDateAxisesRotation(double *rotationArray, int sizeofArray)
 {
-    if (NULL == rotationArray || sizeofArray != sizeof(rootName)/sizeof(char *) - 1 ) {
+    float * xyz = NULL;
+
+    if (NULL == rotationArray || NULL == modelCfgData
+            || NULL == usrAiNodeRoot || sizeofArray != modelCfgData->getAxisNum() - 1)
+    {
         qWarning("%s,%d:uncorrect rotationArray or size %d", __FILE__, __LINE__, sizeofArray);
         return;
     }
 
     //循环各个轴，设置 模型变换矩阵
-    for(unsigned int i = 1; i < sizeof(nodeAxis)/sizeof(char *); i++)
+    for(unsigned int i = 1; i < modelCfgData->getAxisNum(); i++)
     {
-        if (NULL != usrAiNodeRoot)
-        {
-            usrAiNodeRoot->setRotateXYZ(rotationArray[i-1],
-                      axisRotation[i][0], axisRotation[i][1], axisRotation[i][2],nodeAxis[i]); // 设置 模型变换矩阵
-        }
+        xyz = modelCfgData->get_axisRotation(i);
+        usrAiNodeRoot->setRotateXYZ(rotationArray[i-1],
+                  xyz[0], xyz[1], xyz[2], modelCfgData->get_nodeAxisName(i)); // 设置 模型变换矩阵
     }
     updateGL();
 }

@@ -51,7 +51,7 @@ class QScrollArea;
 class QSlider;
 QT_END_NAMESPACE
 class GLWidget;
-class robotcontrolpanel;
+class RobotControlPanel;
 class modelTree;
 class position;
 class MainWindow : public QMainWindow
@@ -88,7 +88,7 @@ private:
     QSlider *xSlider;
     QSlider *ySlider;
     QSlider *zSlider;
-    robotcontrolpanel *controlPanelUI;
+    RobotControlPanel *controlPanelUI;
     modelTree *modelPanelUI;
     position *positionPanelUI;
 

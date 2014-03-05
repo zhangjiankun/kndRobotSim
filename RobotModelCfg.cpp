@@ -1,4 +1,4 @@
-#include "robotmodelcfg.h"
+#include "RobotModelCfg.h"
 #include "debug.h"
 
 RobotModelCfg::RobotModelCfg()
@@ -30,7 +30,7 @@ RobotModelCfg::RobotModelCfg()
     {
         rootName[i] = CFGDATArootName[i];
 
-        nodeAxis[i] = CFGDATAnodeAxis[i];
+        nodeAxisName[i] = CFGDATAnodeAxis[i];
         filename[i] = CFGDATAfilename[i];
         for(unsigned int j = 0; j < sizeof(CFGDATAaxisRotation)/(AxisNum * sizeof(float)); j++)
         {

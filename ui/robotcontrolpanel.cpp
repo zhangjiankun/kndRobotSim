@@ -1,17 +1,315 @@
 #include <QtGui>
+#include <QStringListModel>
+#include <QDebug>
+#include <QTime>
+
 #include "robotcontrolpanel.h"
 
-robotcontrolpanel::robotcontrolpanel(QWidget *parent)
+#include "../usrainode.h"
+#include "../RobotModelCfg.h"
+#include "../instructpaser.h"
+
+
+
+RobotControlPanel::RobotControlPanel(UsrAiNode *Node, QWidget *parent)
     : QDialog(parent)
 {
-    for (unsigned int i = 0; i < sizeof(rotationArray)/sizeof(double); i++){
-        rotationArray[i] = 0.f;
-    }
     setupUi(this);
 
-    //connect(okButton, SIGNAL(clicked()), this, SLOT(accept()));
-    //connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
+    m_spinBoxVector<<SpinBox_S<<SpinBox_L<<SpinBox_U<<SpinBox_R<<SpinBox_B<<SpinBox_T;
+
+    teachingListModel = new QStringListModel;
+    listView->setModel(teachingListModel);
+    listView->setEditTriggers(QAbstractItemView::NoEditTriggers); //设置不支持编辑列表
+    m_aiNode = Node;
+
+    m_modelCfg = new RobotModelCfg;
+    m_simTimeIntetvalM = 1000;
+    m_innerTimer = NULL;
+
+    m_state = IDLE;
+    toolButtonStart->setAutoRaise(true);
+    toolButtonStop->setAutoRaise(true);
+
 
 }
 
+void RobotControlPanel::on_SpinBox_S_valueChanged()
+{
+    upDateAxisesRotation(SpinBox_S->value(), "SAxis");
+    if (SHIELD_SPINBOX_SIG != m_state)
+    {
+        emit sigModelChanged();
+    }
+}
+void RobotControlPanel::on_SpinBox_L_valueChanged()
+{
+    upDateAxisesRotation(SpinBox_L->value(), "LAxis");
+    if (SHIELD_SPINBOX_SIG != m_state)
+    {
+        emit sigModelChanged();
+    }
+}
+void RobotControlPanel::on_SpinBox_U_valueChanged()
+{
+    upDateAxisesRotation(SpinBox_U->value(), "UAxis");
+    if (SHIELD_SPINBOX_SIG != m_state)
+    {
+        emit sigModelChanged();
+    }
+}
+void RobotControlPanel::on_SpinBox_R_valueChanged()
+{
+    upDateAxisesRotation(SpinBox_R->value(), "RAxis");
+    if (SHIELD_SPINBOX_SIG != m_state)
+    {
+        emit sigModelChanged();
+    }
+}
+void RobotControlPanel::on_SpinBox_B_valueChanged()
+{
+    upDateAxisesRotation(SpinBox_B->value(), "BAxis");
+    if (SHIELD_SPINBOX_SIG != m_state)
+    {
+        emit sigModelChanged();
+    }
+}
+void RobotControlPanel::on_SpinBox_T_valueChanged()
+{
+    upDateAxisesRotation(SpinBox_T->value(), "TAxis");
+    if (SHIELD_SPINBOX_SIG != m_state)
+    {
+        emit sigModelChanged();
+    }
+}
 
+void RobotControlPanel::processInstructsStr(QString str)
+{
+    if (str.isEmpty())
+    {
+        return;
+    }
+
+    str.trimmed();//去掉首尾空白
+    str.simplified();//合并中间空格
+    QStringList datas = str.split(" ");
+
+    //设置结点的转过的角度值
+    if(m_spinBoxVector.count() != datas.length())
+    {
+        return;
+    }
+    unsigned i = 0;
+    foreach(QString dataStr, datas)
+    {
+        double angle = dataStr.toDouble();
+        QDoubleSpinBox *spinBox = m_spinBoxVector[i];
+        spinBox->setValue(angle); //更新到面板spinbox
+        i++;
+        m_aiNode->setAngle(angle, m_modelCfg->get_nodeAxisName(i));//更新到结点树
+    }
+
+    //更新各个结点到该结点的旋转矩阵。
+    m_aiNode->updateAngleToMat();
+}
+
+void RobotControlPanel::on_listView_doubleClicked()
+{
+    QVariant variant = teachingListModel->data(listView->currentIndex(), Qt::DisplayRole);
+    QString str = variant.value<QString>();
+    m_state = SHIELD_SPINBOX_SIG;
+    processInstructsStr(str);
+    m_state = IDLE;
+    emit sigModelChanged();
+}
+
+void RobotControlPanel::on_pushButton_editList_clicked()
+{
+    int row = listView->currentIndex().row();
+    QModelIndex index = teachingListModel->index(row);
+    teachingListModel->setData(index, "aaaa");
+    listView->setCurrentIndex(index);
+    listView->edit(index);
+}
+
+void RobotControlPanel::on_pushButton_delList_clicked()
+{
+    teachingListModel->removeRows(listView->currentIndex().row(), 1);
+}
+
+void RobotControlPanel::on_pushButton_addList_clicked()
+{
+    //当前位置后面插入指令
+    int row = listView->currentIndex().row() + 1;
+    teachingListModel->insertRows(row, 1);
+
+    //生成指令
+    QString str;
+    for (int i =0; i < m_spinBoxVector.count(); i++)
+    {
+        str.append(QString::number(m_spinBoxVector[i]->value()));
+        str.append("  ");
+    }
+
+    QModelIndex index = teachingListModel->index(row);
+    teachingListModel->setData(index, str);
+
+    //选中当前指令
+    listView->setCurrentIndex(index);
+
+}
+
+void RobotControlPanel::on_toolButtonStart_clicked()
+{
+    //移动到第一条指令。
+    listView->setCurrentIndex(teachingListModel->index(0));
+
+    if (NULL == m_innerTimer)
+    {
+        m_innerTimer = new QTimer(this);
+
+        m_state = SHIELD_SPINBOX_SIG;
+        toolButtonStart->setAutoRaise(false);
+
+        connect(m_innerTimer, SIGNAL(timeout()), this, SLOT(simulateLists()));
+        m_innerTimer->start(m_simTimeIntetvalM);
+
+        qDebug("simulation start");
+    }
+}
+
+void RobotControlPanel::on_toolButtonStop_clicked()
+{
+    if (NULL != m_innerTimer)
+    {
+        disconnect(m_innerTimer, SIGNAL(timeout()), this, SLOT(simulateLists()));
+        delete m_innerTimer;
+        m_innerTimer = NULL;
+
+        m_state = IDLE;
+        toolButtonStart->setAutoRaise(true);
+        qDebug("simulate stop");
+    }
+}
+
+void RobotControlPanel::simulateLists()
+{
+    //1.获取的当前list 的指令
+    int row = listView->currentIndex().row();
+    QModelIndex index = teachingListModel->index(row);
+    QVariant variant = teachingListModel->data(index, Qt::DisplayRole);
+    QString str = variant.value<QString>();
+    processInstructsStr(str);
+    emit sigModelChanged();
+
+    //2.移动到下一条指令
+    listView->setCurrentIndex(teachingListModel->index(row + 1));
+
+    //3.如果时最后一条指令，取消定时调用。
+    int maxRow = teachingListModel->rowCount();
+    if (row >= maxRow - 1)
+    {
+        disconnect(m_innerTimer, SIGNAL(timeout()), this, SLOT(simulateLists()));
+        delete m_innerTimer;
+        m_innerTimer = NULL;
+
+        m_state = IDLE;
+        toolButtonStart->setAutoRaise(true);
+        qDebug("simulate stop");
+
+    }
+
+}
+
+void RobotControlPanel::upDateAxisesRotation(double angle, const char *objname)
+{
+    if (NULL == m_aiNode )
+    {
+        qWarning("%s,%d:uncorrect m_rotationArray", __FILE__, __LINE__);
+        return;
+    }
+
+    m_aiNode->setAngle(angle, objname);
+    m_aiNode->updateAngleToMat();
+
+}
+
+void RobotControlPanel::on_pushButton_load_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+                               tr("Save teaching lists to file"), ".",
+                               tr("Teaching lists files (*.txt)"));
+
+    if (fileName.isEmpty())
+    {
+        qDebug("Filename is null %s",qPrintable(fileName));
+        return;
+    }
+
+    m_curFileName = fileName;
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadWrite))
+    {
+        QMessageBox::warning(this, tr("Spreadsheet"),
+                             tr("Cannot write file %1:\n%2.")
+                             .arg(file.fileName())
+                             .arg(file.errorString()));
+        return ;
+    }
+
+
+    QTextStream in(&file);
+    while (!in.atEnd())
+    {
+        QString line = in.readLine();
+        teachingList += line;
+    }
+
+    teachingListModel->setStringList(teachingList);
+}
+
+
+void RobotControlPanel::on_pushButton_save_clicked()
+{
+    QString fileName;
+
+    if (m_curFileName.isEmpty())
+    {
+        fileName = QFileDialog::getSaveFileName(this,
+                                   tr("Save teaching lists to file"), ".",
+                                   tr("Teaching lists files (*.txt)"));
+        if (fileName.isEmpty())
+        {
+            qDebug("Filename is null %s",qPrintable(fileName));
+            return;
+        }
+        m_curFileName = fileName;
+    }
+    else
+    {
+        fileName = m_curFileName;
+    }
+
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly))
+    {
+        QMessageBox::warning(this, tr("Spreadsheet"),
+                             tr("Cannot write file %1:\n%2.")
+                             .arg(file.fileName())
+                             .arg(file.errorString()));
+        return ;
+    }
+
+
+    QTextStream out(&file);
+
+    foreach(QString stringItem, teachingListModel->stringList())
+    {
+        out<<stringItem<<endl;
+    }
+
+    //事实上，file离开作用域之后，便会自动关闭。
+    file.close();
+}

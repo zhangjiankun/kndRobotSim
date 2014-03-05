@@ -263,16 +263,24 @@ Others: // 其它说明
 *************************************************/
 void MainWindow::showControlPanel()
 {
-    if (!controlPanelUI) {
-        controlPanelUI = new robotcontrolpanel(this);
+    if (!controlPanelUI)
+    {
+        controlPanelUI = new RobotControlPanel(glWidget->getNode(), this);
+
+        connect(controlPanelUI, SIGNAL(sigModelChanged()),
+                glWidget, SLOT(updateGL()));
 
         connect(controlPanelUI, SIGNAL(axisRotationChanged(double *, int)),
                 glWidget, SLOT (upDateAxisesRotation(double *, int)) );
 
+
     }
-    if (controlPanelUI->isHidden()) {
+    if (controlPanelUI->isHidden())
+    {
         controlPanelUI->show();
-    } else {
+    }
+    else
+    {
         controlPanelUI->activateWindow();
     }
 

@@ -275,7 +275,10 @@ HEADERS += debug.h \
     camera.h \
     Matrices.h \
     Vectors.h \
-    robotmodelcfg.h
+    teachinglists.h \
+    RobotModelCfg.h \
+    instructpaser.h \
+    simulator.h
 FORMS += ui/controlPanel.ui \
     ui/modeltree.ui \
     ui/position.ui
@@ -427,7 +430,10 @@ SOURCES += glwidget.cpp \
     ui/position.cpp \
     camera.cpp \
     Matrices.cpp \
-    robotmodelcfg.cpp
+    teachinglists.cpp \
+    RobotModelCfg.cpp \
+    instructpaser.cpp \
+    simulator.cpp
 RESOURCES += RobotGUI.qrc
 QT           += opengl
 LIBS += -lGLU\

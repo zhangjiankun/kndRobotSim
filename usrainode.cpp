@@ -334,8 +334,7 @@ void UsrAiNode::callShowList(NodeType type)
         glPopAttrib();
     }
 
-    DEBUG_OUT("callShowList node %s.Time elapsed: %d ms",mName, t.elapsed());
-
+    //DEBUG_OUT("callShowList node %s.Time elapsed: %d ms",mName, t.elapsed());
 }
 
 /*************************************************
@@ -578,7 +577,7 @@ void UsrAiNode::RotationXYZ(float angle, float x, float y, float z,const char *o
 /*************************************************
 Function: // 函数名称
 Description: // 函数功能、性能等的描述
-    找到节点inobjname，并执行x,y,z方向的位移。
+    找到节点inobjname，并以x,y,z为转轴旋转angle度。
 Input: // 输入参数说明，包括每个参数的作
 // 用、取值说明及参数间关系。
 Output: // 对输出参数的说明。
@@ -607,6 +606,128 @@ void UsrAiNode::setRotateXYZ(double angle, float x, float y, float z,const char 
         this->mTransformation.setRotation(angle,x,y,z);
     }
 
+}
+
+
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+    找到节点inobjname，并设置旋转轴。
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+void UsrAiNode::setRotationAxis(float x, float y, float z, const char *objname)
+{
+    UsrAiNode * theFoundedNod = NULL;
+    if (NULL != objname)
+    {
+        theFoundedNod = FindNode(objname);
+        if (NULL == theFoundedNod)
+        {
+            WAR_OUT("%s,%d:node not exist",__FILE__,__LINE__);
+            return;
+        }
+
+        theFoundedNod->m_RotationAxis[0]=x;
+        theFoundedNod->m_RotationAxis[1]=y;
+        theFoundedNod->m_RotationAxis[2]=z;
+    }
+    else
+    {
+        DEBUG_OUT("%s,%d:objname %s",__FILE__,__LINE__,objname);
+        m_RotationAxis[0]=x; m_RotationAxis[1]=y; m_RotationAxis[2]=z;
+    }
+
+}
+void UsrAiNode::setAngle(double angle, const char *objname)
+{
+    UsrAiNode * theFoundedNod = NULL;
+    if (NULL != objname)
+    {
+        theFoundedNod = FindNode(objname);
+        if (NULL == theFoundedNod)
+        {
+            WAR_OUT("%s,%d:node not exist",__FILE__,__LINE__);
+            return;
+        }
+
+        theFoundedNod->setAngle(angle);
+    }
+    else
+    {
+        DEBUG_OUT("%s,%d:objname %s",__FILE__,__LINE__,objname);
+        setAngle(angle);
+    }
+}
+
+void UsrAiNode::updateAngleToMat()
+{
+    UsrAiNode* positionInQue = NULL;
+    std::queue<UsrAiNode *> aiNodeQue;
+    std::list<UsrAiNode *>::iterator childrenItem;
+    std::list<UsrAiNode *> tmpChildList;
+
+    //层序遍历
+    aiNodeQue.push(this);
+
+    while(!aiNodeQue.empty())
+    {
+        positionInQue = aiNodeQue.front();
+        aiNodeQue.pop();
+
+        //action begin
+        positionInQue->mTransformation.setRotation(positionInQue->m_angle,
+            positionInQue->m_RotationAxis[0], positionInQue->m_RotationAxis[1], positionInQue->m_RotationAxis[2]);
+        //action end
+
+        tmpChildList = positionInQue->getChildrenList();
+        for(childrenItem = tmpChildList.begin(); childrenItem != tmpChildList.end(); ++childrenItem)
+        {
+            aiNodeQue.push(*childrenItem);
+        }
+
+    }
+}
+
+/*************************************************
+Function: // 函数名称
+Description: // 函数功能、性能等的描述
+    按照结点的转轴旋转angle。
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+void UsrAiNode::setRotateXYZ(double angle, const char *objname)
+{
+    UsrAiNode * theFoundedNod = NULL;
+    float *rotationAxises = NULL;
+
+    //查找当前结点下挂的名为objname的结点，绕该结点旋转angle。
+    if (NULL != objname)
+    {
+        theFoundedNod = FindNode(objname);
+        if (NULL == theFoundedNod)
+        {
+            WAR_OUT("%s,%d:node not exist",__FILE__,__LINE__);
+            return;
+        }
+        rotationAxises = theFoundedNod->getRotationAxis();
+        theFoundedNod->mTransformation.setRotation(angle, rotationAxises[0], rotationAxises[1], rotationAxises[2]);
+    }
+    else //默认绕当前结点的转轴，旋转angle。
+    {
+        DEBUG_OUT("%s,%d:objname %s",__FILE__,__LINE__,objname);
+        rotationAxises = getRotationAxis();
+
+        this->mTransformation.setRotation(angle, rotationAxises[0], rotationAxises[1], rotationAxises[2]);
+    }
 }
 
 /*************************************************

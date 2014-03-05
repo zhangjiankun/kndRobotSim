@@ -10,6 +10,7 @@ public:
     UsrAiNode() { // set all members to zero by default
         mParent = NULL;
         mName = NULL; fileName = NULL; ishidden = false; nodeType = MODULE;
+        m_angle = 0;
         mTransformation.identity();//init with identity
     }
 
@@ -18,6 +19,7 @@ public:
         mParent = NULL;
         mName = name;
         fileName = NULL; ishidden = false; nodeType = type;
+        m_angle = 0;
         mTransformation.identity();//init with identity
     }
 
@@ -67,7 +69,13 @@ public:
     {  RotationXYZ( angle,  x,  y,  z, objname);}
 
     void setRotateXYZ(double angle, float x, float y, float z, const char *objname = NULL);
+    void setRotateXYZ(double angle, const char *objname = NULL);//绕转轴旋转angle度
+    float *getRotationAxis(){ return m_RotationAxis; }
+    void setRotationAxis(float x, float y, float z, const char *objname = NULL);
 
+    void setAngle(double angle) { m_angle = angle;}
+    void setAngle(double angle, const char *objname);
+    void updateAngleToMat();
 
 
 protected:
@@ -84,6 +92,9 @@ private:
     const char *fileName;//
     const char *mName;//结点名字
     bool ishidden; //true表示隐藏，false显示
+
+    float m_RotationAxis[3];//当前结点的转轴
+    double m_angle;//当前结点绕转轴转的角度
 
     std::list<unsigned int*> meshList;
     std::list<int> showList;//结点下挂的显示列表

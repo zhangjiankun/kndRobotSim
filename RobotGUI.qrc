@@ -10,5 +10,7 @@
         <file>resource/imgs/exit.png</file>
         <file>resource/imgs/modelTree.png</file>
         <file>resource/imgs/tiankong.jpg</file>
+        <file>resource/imgs/start_free.png</file>
+        <file>resource/imgs/stop_free.png</file>
     </qresource>
 </RCC>
