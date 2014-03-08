@@ -57,7 +57,7 @@
 #include "debug.h"
 #include "usropengl.h"
 #include "Matrices.h"
-#include "RobotModelCfg.h"
+#include "robotmodelcfg.h"
 
 #include <QTime> // 记时用。
 
@@ -79,6 +79,7 @@ GLWidget::GLWidget(QWidget *parent)
     fullscreen = false;
     modelCfgData = new RobotModelCfg;
     setFocusPolicy(Qt::StrongFocus);
+    usrAiNodeRoot = NULL;
 //    QTimer *timer = new QTimer(this);
 //    connect(timer, SIGNAL(timeout()), this, SLOT(advanceGears()));
 //    timer->start(20);
@@ -124,6 +125,10 @@ void GLWidget::creatBasicNodeTree()
     float *positionAxis = NULL;
 
     // 创建baseAxis
+    if (NULL != usrAiNodeRoot)
+    {
+        delete usrAiNodeRoot;
+    }
     usrAiNodeRoot = new UsrAiNode(UsrAiNode::AXIS, modelCfgData->get_nodeAxisName(0)); //当前结点为坐标轴
     usrAiNodeRoot->addShowListToNode(makeWordPlane(), modelCfgData->get_nodeAxisName(0));
 
@@ -158,7 +163,7 @@ void GLWidget::creatBasicNodeTree()
     {
         if( 0 != loadasset(modelCfgData->get_filename(i)))
         {
-            WAR_OUT("load file %s failed!\n",modelCfgData->get_filename(i));
+            WAR_OUT("load file %s failed!\n", modelCfgData->get_filename(i));
         }
 
         float * axisRotation = modelCfgData->get_axisRotation(i);
@@ -170,6 +175,25 @@ void GLWidget::creatBasicNodeTree()
     }
 
 }
+
+
+void GLWidget::setAndUpdateRobotModel(const char *filename)
+{
+    if (NULL == filename)
+    {
+        return;
+    }
+
+    //更新配置文件
+    modelCfgData->updateCfgFromXml(filename);
+
+    //更新opengl模型树
+    creatBasicNodeTree();
+
+    //updateGL();
+    qDebug("GLWidget loadModel %s", filename);
+}
+
 
 void GLWidget::initializeGL()
 {

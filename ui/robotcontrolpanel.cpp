@@ -6,7 +6,7 @@
 #include "robotcontrolpanel.h"
 
 #include "../usrainode.h"
-#include "../RobotModelCfg.h"
+#include "../robotmodelcfg.h"
 #include "../instructpaser.h"
 
 

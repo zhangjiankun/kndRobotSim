@@ -157,6 +157,9 @@ void MainWindow::createActions()
 
     aboutQtAct = new QAction(tr("About &Qt"), this);
     connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+
+    loadModelAct = new QAction(tr("&Load Robot"),this);
+    connect(loadModelAct, SIGNAL(triggered()), this, SLOT(loadRobotModel()) );
 }
 
 void MainWindow::createMenus()
@@ -171,6 +174,9 @@ void MainWindow::createMenus()
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(aboutQtAct);
+
+    modelMenu = menuBar()->addMenu(tr("&Scene"));
+    modelMenu->addAction(loadModelAct);
 }
 
 void MainWindow::createToolBars()
@@ -193,6 +199,31 @@ void MainWindow::createStatusBar()
 {
 
     ;
+}
+
+void MainWindow::loadRobotModel()
+{
+    if (NULL == glWidget)
+    {
+        QMessageBox::warning(0, QObject::tr("DOM Parser"),
+                             QObject::tr("Error: Cannot load model!"));
+        return;
+    }
+
+    //获取文件模型文件名
+    QString filename;
+    filename = QFileDialog::getOpenFileName(this,
+                               tr("Choose model file"), ".",
+                               tr("Model files (*.xml)"));
+    if (filename.isEmpty())
+    {
+        return;
+    }
+
+    //更新模型
+    glWidget->setAndUpdateRobotModel(qPrintable(filename));
+
+    qDebug("MainWindow load model");
 }
 
 /*************************************************
@@ -219,9 +250,12 @@ void MainWindow::showPositionPanel()
         connect(glWidget, SIGNAL(yTransitionChanged(double)), positionPanelUI, SLOT(setYTransition(double)));
         connect(glWidget, SIGNAL(zTransitionChanged(double)), positionPanelUI, SLOT(setZTransition(double)));
     }
-    if (positionPanelUI->isHidden()) {
+    if (positionPanelUI->isHidden())
+    {
         positionPanelUI->show();
-    } else {
+    }
+    else
+    {
         positionPanelUI->activateWindow();
     }
 }
@@ -244,9 +278,12 @@ void MainWindow::showModelPanel()
         //connect(modelPanelUI, SIGNAL(sigModelPosition()), glWidget, SLOT(setNode()));
         //connect(modelPanelUI, SIGNAL(sigHiddenModel()), glWidget, SLOT(hiddenModel(const char *)));
     }
-    if (modelPanelUI->isHidden()) {
+    if (modelPanelUI->isHidden())
+    {
         modelPanelUI->show();
-    } else {
+    }
+    else
+    {
         modelPanelUI->activateWindow();
     }
 }

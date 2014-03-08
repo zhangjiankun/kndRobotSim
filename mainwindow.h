@@ -69,6 +69,7 @@ private slots:
     void showControlPanel();
     void showModelPanel();
     void showPositionPanel();
+    void loadRobotModel();
 
 private:
     void createActions();
@@ -94,6 +95,7 @@ private:
 
     QMenu *fileMenu;
     QMenu *helpMenu;
+    QMenu *modelMenu;
     QAction *grabFrameBufferAct;
     QAction *renderIntoPixmapAct;
     QAction *clearPixmapAct;
@@ -103,6 +105,7 @@ private:
     QAction *controlPanelAction;
     QAction *modelPanelAction;
     QAction *positionPanelAction;
+    QAction *loadModelAct;
 
     QToolBar *controlTool;
     QToolBar *modelTool;

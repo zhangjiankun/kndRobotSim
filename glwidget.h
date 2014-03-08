@@ -69,6 +69,7 @@ public slots:
     void setNode() {
         updateGL();
     }
+    void setAndUpdateRobotModel(const char *filename);
 
 
 signals:
