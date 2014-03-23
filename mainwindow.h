@@ -54,10 +54,10 @@ class GLWidget;
 class RobotControlPanel;
 class modelTree;
 class position;
+class RobotModelCfg;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
 public:
     MainWindow();
 
@@ -70,6 +70,7 @@ private slots:
     void showModelPanel();
     void showPositionPanel();
     void loadRobotModel();
+    void saveRobotModel();
 
 private:
     void createActions();
@@ -86,9 +87,6 @@ private:
     QScrollArea *pixmapLabelArea;
     GLWidget *glWidget;
     QLabel *pixmapLabel;
-    QSlider *xSlider;
-    QSlider *ySlider;
-    QSlider *zSlider;
     RobotControlPanel *controlPanelUI;
     modelTree *modelPanelUI;
     position *positionPanelUI;
@@ -106,9 +104,12 @@ private:
     QAction *modelPanelAction;
     QAction *positionPanelAction;
     QAction *loadModelAct;
+    QAction *saveModelAct;
 
     QToolBar *controlTool;
     QToolBar *modelTool;
+    RobotModelCfg * m_modelCfgData;
+
 };
 
 #endif

@@ -11,32 +11,53 @@
 
 
 
-RobotControlPanel::RobotControlPanel(UsrAiNode *Node, QWidget *parent)
+RobotControlPanel::RobotControlPanel(UsrAiNode *Node, RobotModelCfg * modelCfg, QWidget *parent)
     : QDialog(parent)
 {
+    m_aiNode = Node;
     setupUi(this);
 
     m_spinBoxVector<<SpinBox_S<<SpinBox_L<<SpinBox_U<<SpinBox_R<<SpinBox_B<<SpinBox_T;
+    m_labelVector<<label<<label_2<<label_3<<label_4<<label_5<<label_6;
+
+    updateRobotCfgData(modelCfg);
 
     teachingListModel = new QStringListModel;
     listView->setModel(teachingListModel);
     listView->setEditTriggers(QAbstractItemView::NoEditTriggers); //设置不支持编辑列表
-    m_aiNode = Node;
 
-    m_modelCfg = new RobotModelCfg;
     m_simTimeIntetvalM = 1000;
     m_innerTimer = NULL;
 
+    //初始状态为空闲状态。
     m_state = IDLE;
+
     toolButtonStart->setAutoRaise(true);
     toolButtonStop->setAutoRaise(true);
 
+}
+
+void RobotControlPanel::updateRobotCfgData(RobotModelCfg *modelCfg)
+{
+    if (modelCfg->getAxisNum() < m_spinBoxVector.count())
+    {
+        QMessageBox::information(this, tr("Robot Model"),
+                             tr("Control Panel is not suitable for this model!"));
+        return;
+    }
+
+    for (int i = 0; i < m_spinBoxVector.count(); i++)
+    {
+        m_spinBoxVector[i]->setRange(modelCfg->get_axisRotAttr(i+1)[0], modelCfg->get_axisRotAttr(i+1)[1]);
+        m_spinBoxVector[i]->setAccessibleName(modelCfg->get_nodeAxisName(i+1));
+        m_labelVector[i]->setText(modelCfg->get_nodeAxisName(i+1));//更新Label显示。
+    }
 
 }
 
 void RobotControlPanel::on_SpinBox_S_valueChanged()
 {
-    upDateAxisesRotation(SpinBox_S->value(), "SAxis");
+    upDateAxisesRotation(SpinBox_S->value(), SpinBox_S->accessibleName());
     if (SHIELD_SPINBOX_SIG != m_state)
     {
         emit sigModelChanged();
@@ -44,7 +65,7 @@ void RobotControlPanel::on_SpinBox_S_valueChanged()
 }
 void RobotControlPanel::on_SpinBox_L_valueChanged()
 {
-    upDateAxisesRotation(SpinBox_L->value(), "LAxis");
+    upDateAxisesRotation(SpinBox_L->value(), SpinBox_L->accessibleName());
     if (SHIELD_SPINBOX_SIG != m_state)
     {
         emit sigModelChanged();
@@ -52,7 +73,7 @@ void RobotControlPanel::on_SpinBox_L_valueChanged()
 }
 void RobotControlPanel::on_SpinBox_U_valueChanged()
 {
-    upDateAxisesRotation(SpinBox_U->value(), "UAxis");
+    upDateAxisesRotation(SpinBox_U->value(), SpinBox_U->accessibleName());
     if (SHIELD_SPINBOX_SIG != m_state)
     {
         emit sigModelChanged();
@@ -60,7 +81,7 @@ void RobotControlPanel::on_SpinBox_U_valueChanged()
 }
 void RobotControlPanel::on_SpinBox_R_valueChanged()
 {
-    upDateAxisesRotation(SpinBox_R->value(), "RAxis");
+    upDateAxisesRotation(SpinBox_R->value(), SpinBox_R->accessibleName());
     if (SHIELD_SPINBOX_SIG != m_state)
     {
         emit sigModelChanged();
@@ -68,7 +89,7 @@ void RobotControlPanel::on_SpinBox_R_valueChanged()
 }
 void RobotControlPanel::on_SpinBox_B_valueChanged()
 {
-    upDateAxisesRotation(SpinBox_B->value(), "BAxis");
+    upDateAxisesRotation(SpinBox_B->value(), SpinBox_B->accessibleName());
     if (SHIELD_SPINBOX_SIG != m_state)
     {
         emit sigModelChanged();
@@ -76,7 +97,7 @@ void RobotControlPanel::on_SpinBox_B_valueChanged()
 }
 void RobotControlPanel::on_SpinBox_T_valueChanged()
 {
-    upDateAxisesRotation(SpinBox_T->value(), "TAxis");
+    upDateAxisesRotation(SpinBox_T->value(), SpinBox_T->accessibleName());
     if (SHIELD_SPINBOX_SIG != m_state)
     {
         emit sigModelChanged();
@@ -106,7 +127,7 @@ void RobotControlPanel::processInstructsStr(QString str)
         QDoubleSpinBox *spinBox = m_spinBoxVector[i];
         spinBox->setValue(angle); //更新到面板spinbox
         i++;
-        m_aiNode->setAngle(angle, m_modelCfg->get_nodeAxisName(i));//更新到结点树
+        m_aiNode->setAngle(angle, qPrintable(spinBox->accessibleName()));//更新到结点树
     }
 
     //更新各个结点到该结点的旋转矩阵。
@@ -221,7 +242,7 @@ void RobotControlPanel::simulateLists()
 
 }
 
-void RobotControlPanel::upDateAxisesRotation(double angle, const char *objname)
+void RobotControlPanel::upDateAxisesRotation(double angle, const QString &objname)
 {
     if (NULL == m_aiNode )
     {
@@ -229,7 +250,7 @@ void RobotControlPanel::upDateAxisesRotation(double angle, const char *objname)
         return;
     }
 
-    m_aiNode->setAngle(angle, objname);
+    m_aiNode->setAngle(angle, qPrintable(objname));
     m_aiNode->updateAngleToMat();
 
 }

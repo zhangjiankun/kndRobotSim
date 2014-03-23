@@ -23,7 +23,7 @@ public slots:
     void setXTransition(double value);
     void setYTransition(double value);
     void setZTransition(double value);
-    void modelUpdate();//当结点变化时，需要通知更新模型
+    void modelUpdate(UsrAiNode *node);//当结点变化时，需要被通知更新模型
 private slots:
     //这里将x位移发给GLWidget,在GLWidget类中更改。既然结点已经指定，也可以在本类中变更
     void on_xPosition_valueChanged(double value){ emit xTransitionChanged(value, qPrintable(globel)); }

@@ -7,22 +7,12 @@ class UsrAiNode
 {
 public:
     enum NodeType { AXIS, MODULE };
-    UsrAiNode() { // set all members to zero by default
-        mParent = NULL;
-        mName = NULL; fileName = NULL; ishidden = false; nodeType = MODULE;
-        m_angle = 0;
-        mTransformation.identity();//init with identity
-    }
+    UsrAiNode();
 
-    /** Construction from a specific name */
-    UsrAiNode(NodeType type, const char *name) { // set all members to zero by default
-        mParent = NULL;
-        mName = name;
-        fileName = NULL; ishidden = false; nodeType = type;
-        m_angle = 0;
-        mTransformation.identity();//init with identity
-    }
+    //name 的生存周期需要和本类一致。
+    UsrAiNode(NodeType type, const char *name);
 
+    //释放该结点下挂的所有结点，以及每个结点上的显示列表。
     ~UsrAiNode();
 
     //以下函数只处理单个结点

@@ -11,11 +11,14 @@ class RobotControlPanel:public QDialog, public Ui::controlPanel
 {
     Q_OBJECT
 public:
-    RobotControlPanel(UsrAiNode *Node, QWidget *parent = 0);
+    RobotControlPanel(UsrAiNode *Node, RobotModelCfg *modelCfg, QWidget *parent = 0);
 signals:
     void axisRotationChanged(double *m_rotationArray, int sizeofArray);
     void sigModelChanged();
     void sigInerSim();
+public slots:
+    void updateRobotNode(UsrAiNode *Node){ m_aiNode = Node; }
+    void updateRobotCfgData(RobotModelCfg *modelCfg);
 private slots:
     void on_SpinBox_S_valueChanged();
     void on_SpinBox_L_valueChanged();
@@ -33,12 +36,13 @@ private slots:
     void on_toolButtonStart_clicked();
     void on_toolButtonStop_clicked();
 
-    void upDateAxisesRotation(double angle, const char *objname);
+    void upDateAxisesRotation(double angle, const QString &objname);
     void processInstructsStr(QString str);
     void simulateLists();
 private:
     enum STATE{ IDLE, SHIELD_SPINBOX_SIG };
     QVector<QDoubleSpinBox *> m_spinBoxVector;
+    QVector<QLabel *> m_labelVector;
     QStringListModel *teachingListModel;
     QStringList teachingList;
     UsrAiNode *m_aiNode;

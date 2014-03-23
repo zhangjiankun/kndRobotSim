@@ -44,6 +44,7 @@
 #include <math.h>
 
 #include "glwidget.h"
+#include "robotmodelcfg.h"
 #include <GL/glu.h>
 
 //b zjk
@@ -57,10 +58,8 @@
 #include "debug.h"
 #include "usropengl.h"
 #include "Matrices.h"
-#include "robotmodelcfg.h"
 
 #include <QTime> // 记时用。
-
 
 GLWidget::GLWidget(QWidget *parent)
     : QGLWidget(parent)
@@ -77,9 +76,9 @@ GLWidget::GLWidget(QWidget *parent)
     viewNearLenSteps = 0;
     viewNearLen = getNearLen();
     fullscreen = false;
-    modelCfgData = new RobotModelCfg;
+//    m_modelCfgData = new RobotModelCfg;
     setFocusPolicy(Qt::StrongFocus);
-    usrAiNodeRoot = NULL;
+    this->m_robotModelRoot = NULL;
 //    QTimer *timer = new QTimer(this);
 //    connect(timer, SIGNAL(timeout()), this, SLOT(advanceGears()));
 //    timer->start(20);
@@ -93,7 +92,7 @@ GLWidget::~GLWidget()
     glDeleteLists(gear3, 1);
     glDeleteLists(axis, 1);
     glDeleteTextures(1,texture);
-    delete modelCfgData;
+//    delete m_modelCfgData;
     //glDeleteLists(scene_list,1);
 }
 
@@ -119,58 +118,59 @@ Return: // 函数返回值的说明
 Author: zhangjiankun
 Others: // 其它说明
 *************************************************/
-void GLWidget::creatBasicNodeTree()
+void GLWidget::creatBasicNodeTree( RobotModelCfg *robotModelCfg)
 {
-    unsigned int i = 0;//rootName index
+    int i = 0;
     float *positionAxis = NULL;
 
-    // 创建baseAxis
-    if (NULL != usrAiNodeRoot)
+    if (NULL != m_robotModelRoot)
     {
-        delete usrAiNodeRoot;
+        delete m_robotModelRoot;
     }
-    usrAiNodeRoot = new UsrAiNode(UsrAiNode::AXIS, modelCfgData->get_nodeAxisName(0)); //当前结点为坐标轴
-    usrAiNodeRoot->addShowListToNode(makeWordPlane(), modelCfgData->get_nodeAxisName(0));
+
+    // 创建baseAxis
+    m_robotModelRoot = new UsrAiNode(UsrAiNode::AXIS, robotModelCfg->get_nodeAxisName(0)); //当前结点为坐标轴
+    m_robotModelRoot->addShowListToNode(makeWordPlane(), robotModelCfg->get_nodeAxisName(0));
 
     //生成模型树，加载轴坐标（轴坐标随手臂一起运动，Txyz时针对root坐标的移动如果重合的话，参数为0即可）
-    for( i = 1; i < modelCfgData->getAxisNum(); i++)
+    for(i = 1; i < robotModelCfg->getAxisNum(); i++)
     {
-        positionAxis = modelCfgData->get_axisPosition(i-1);
-        usrAiNodeRoot->addNodeToTree(new UsrAiNode(UsrAiNode::MODULE, modelCfgData->get_rootName(i-1)),
-                                     modelCfgData->get_nodeAxisName(i-1));
-        usrAiNodeRoot->addNodeToTree(new UsrAiNode(UsrAiNode::AXIS, modelCfgData->get_nodeAxisName(i)),
-                                     modelCfgData->get_nodeAxisName(i-1));
-        usrAiNodeRoot->addShowListToNode(makeWordPlane(), modelCfgData->get_nodeAxisName(i));
+        positionAxis = robotModelCfg->get_axisPosition(i-1);
+        m_robotModelRoot->addNodeToTree(new UsrAiNode(UsrAiNode::MODULE, robotModelCfg->get_rootName(i-1)),
+                                     robotModelCfg->get_nodeAxisName(i-1));
+        m_robotModelRoot->addNodeToTree(new UsrAiNode(UsrAiNode::AXIS, robotModelCfg->get_nodeAxisName(i)),
+                                     robotModelCfg->get_nodeAxisName(i-1));
+        m_robotModelRoot->addShowListToNode(makeWordPlane(), robotModelCfg->get_nodeAxisName(i));
 
         //移动坐标轴到转轴原点
-        usrAiNodeRoot->translateXYZ(modelCfgData->get_nodeAxisName(i-1), positionAxis[0], positionAxis[1], positionAxis[2]);
+        m_robotModelRoot->translateXYZ(robotModelCfg->get_nodeAxisName(i-1), positionAxis[0], positionAxis[1], positionAxis[2]);
 
         //消除转轴移动导致的该坐标下的物体位置移动。
-        usrAiNodeRoot->translateXYZ(modelCfgData->get_rootName(i-1), 0-positionAxis[0], 0-positionAxis[1], 0-positionAxis[2]);
-        usrAiNodeRoot->translateXYZ(modelCfgData->get_nodeAxisName(i), 0-positionAxis[0], 0-positionAxis[1], 0-positionAxis[2]);
+        m_robotModelRoot->translateXYZ(robotModelCfg->get_rootName(i-1), 0-positionAxis[0], 0-positionAxis[1], 0-positionAxis[2]);
+        m_robotModelRoot->translateXYZ(robotModelCfg->get_nodeAxisName(i), 0-positionAxis[0], 0-positionAxis[1], 0-positionAxis[2]);
     }
 
     // 将上面for循环里面的步骤，作用到最后一个结点上。
-    usrAiNodeRoot->addNodeToTree(new UsrAiNode(UsrAiNode::MODULE,
-                                               modelCfgData->get_rootName(i-1)), modelCfgData->get_nodeAxisName(i-1));
+    m_robotModelRoot->addNodeToTree(new UsrAiNode(UsrAiNode::MODULE,
+                                               robotModelCfg->get_rootName(i-1)), robotModelCfg->get_nodeAxisName(i-1));
 
-    positionAxis = modelCfgData->get_axisPosition(i-1);
-    usrAiNodeRoot->translateXYZ(modelCfgData->get_nodeAxisName(i-1), positionAxis[0], positionAxis[1], positionAxis[2]);
-    usrAiNodeRoot->translateXYZ(modelCfgData->get_rootName(i-1), 0-positionAxis[0], 0-positionAxis[1], 0-positionAxis[2]);
+    positionAxis = robotModelCfg->get_axisPosition(i-1);
+    m_robotModelRoot->translateXYZ(robotModelCfg->get_nodeAxisName(i-1), positionAxis[0], positionAxis[1], positionAxis[2]);
+    m_robotModelRoot->translateXYZ(robotModelCfg->get_rootName(i-1), 0-positionAxis[0], 0-positionAxis[1], 0-positionAxis[2]);
 
     //在每个节点上加载手臂模型
-    for(unsigned int i = 0; i < modelCfgData->getAxisNum(); i++)
+    for(int i = 0; i < robotModelCfg->getAxisNum(); i++)
     {
-        if( 0 != loadasset(modelCfgData->get_filename(i)))
+        if( 0 != loadasset(robotModelCfg->get_filename(i)))
         {
-            WAR_OUT("load file %s failed!\n", modelCfgData->get_filename(i));
+            WAR_OUT("load file %s failed!\n", robotModelCfg->get_filename(i));
         }
 
-        float * axisRotation = modelCfgData->get_axisRotation(i);
-        usrAiNodeRoot->setFileNameByNode(modelCfgData->get_filename(i),modelCfgData->get_rootName(i) );
-        usrAiNodeRoot->addShowListToNode(makeLoadObj(),modelCfgData->get_rootName(i));
-        usrAiNodeRoot->setRotationAxis(axisRotation[0], axisRotation[1], axisRotation[2],
-                                       modelCfgData->get_nodeAxisName(i));
+        float * axisRotation = robotModelCfg->get_axisRotation(i);
+        m_robotModelRoot->setFileNameByNode(robotModelCfg->get_filename(i),robotModelCfg->get_rootName(i) );
+        m_robotModelRoot->addShowListToNode(makeLoadObj(),robotModelCfg->get_rootName(i));
+        m_robotModelRoot->setRotationAxis(axisRotation[0], axisRotation[1], axisRotation[2],
+                                       robotModelCfg->get_nodeAxisName(i));
         aiReleaseImport(scene);
     }
 
@@ -179,19 +179,7 @@ void GLWidget::creatBasicNodeTree()
 
 void GLWidget::setAndUpdateRobotModel(const char *filename)
 {
-    if (NULL == filename)
-    {
-        return;
-    }
 
-    //更新配置文件
-    modelCfgData->updateCfgFromXml(filename);
-
-    //更新opengl模型树
-    creatBasicNodeTree();
-
-    //updateGL();
-    qDebug("GLWidget loadModel %s", filename);
 }
 
 
@@ -202,7 +190,7 @@ void GLWidget::initializeGL()
 
     //DEBUG_OUT("enter initial GL");
     static const GLfloat lightPos[4] = { 5.0f, 5.0f, 10.0f, 1.0f };
-    static const GLfloat reflectance1[4] = { 0.8f, 0.1f, 0.0f, 1.0f };
+//    static const GLfloat reflectance1[4] = { 0.8f, 0.1f, 0.0f, 1.0f };
     static const GLfloat reflectance2[4] = { 0.0f, 0.8f, 0.2f, 1.0f };
     static const GLfloat reflectance3[4] = { 0.2f, 0.2f, 1.0f, 1.0f };
 
@@ -212,14 +200,14 @@ void GLWidget::initializeGL()
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
 
-    creatBasicNodeTree();
 
     //显示列表生成
     gear2 = makeGear(reflectance2, 0.5, 1.0, 2.0, 0.7, 10);
     gear3 = makeGear(reflectance3, 1.3, 2.0, 0.5, 0.7, 15);
     axis = makeWordPlane();
 
-    DEBUG_OUT("scene = %f",scene);
+    m_robotModelRoot = new UsrAiNode(UsrAiNode::AXIS, "root"); //当前结点为坐标轴
+    m_robotModelRoot->addShowListToNode(makeWordPlane());
 
     glEnable(GL_NORMALIZE);
     glClearColor(0.3f, 0.3f, 0.5f, 0.5f);
@@ -228,6 +216,7 @@ void GLWidget::initializeGL()
     glDepthFunc( GL_LEQUAL );
 
     DEBUG_OUT("initial GL.Time elapsed: %d ms", t.elapsed());
+
 
 }
 inline float GLWidget::getNearLen()
@@ -275,7 +264,8 @@ void GLWidget::paintGL()
     glTranslated(0.0, 0.0, -30.0 + 0*viewNearLen );
     gluLookAt(1.0, 1.0, 1.0,0.0, 0.0, 0.0,0.0, 0.0, 1.0);
 
-    //glCallList(axis);
+    //显示世界坐标中心
+    glCallList(axis);
     //glCallList(gear2);
 
     glRotated(0*xRot / 16., 1.0, 0.0, 0.0);
@@ -294,10 +284,12 @@ void GLWidget::paintGL()
     set_aiMatrix4x4(n,mView);
     out = m.Inverse() * n;
 #endif
-    usrAiNodeRoot->callShowList();
-    DEBUG_OUT("call showlist1 GL.Time elapsed: %d ms", t.elapsed());
-    usrAiNodeRoot->callShowList(UsrAiNode::AXIS);
-
+    if (NULL != m_robotModelRoot)
+    {
+        m_robotModelRoot->callShowList();
+        DEBUG_OUT("call showlist1 GL.Time elapsed: %d ms", t.elapsed());
+        m_robotModelRoot->callShowList(UsrAiNode::AXIS);
+    }
     glPopMatrix();
 
 #endif
@@ -355,7 +347,7 @@ void GLWidget::setModelMat(const char *objname, GLfloat Tx, GLfloat Ty, GLfloat 
     out = out * m;
 
 #endif
-    usrAiNodeRoot->setTranslationMatrix(out, objname);
+    m_robotModelRoot->setTranslationMatrix(out, objname);
 }
 ///////////////////////////////////////////////////////////////////////////////
 // configure projection and viewport of sub window
@@ -369,6 +361,7 @@ void GLWidget::setViewportSub(int x, int y, int width, int height, float nearPla
     // set viewport
     //glViewport(x, y, width, height);
     //glScissor(x, y, width, height);
+    qDebug("%d,%d",x,y);
 
     // set perspective viewing frustum
     setFrustum(FOV_Y, (float)(width)/height, nearPlane, farPlane, floatArry); // FOV, AspectRatio, NearClip, FarClip
@@ -613,8 +606,8 @@ void GLWidget::setXTransition(double xposition, const char * currentNodeName)
 {
     UsrAiNode * theFoundedNod = NULL;
 
-    if (NULL != usrAiNodeRoot) {
-        theFoundedNod = usrAiNodeRoot->FindNode(currentNodeName);
+    if (NULL != m_robotModelRoot) {
+        theFoundedNod = m_robotModelRoot->FindNode(currentNodeName);
         if (NULL == theFoundedNod) {
             DEBUG_OUT("%s,%d:node not exist",__FILE__,__LINE__);
             return;
@@ -638,8 +631,8 @@ void GLWidget::setYTransition(double yposition, const char * currentNodeName)
 {
     UsrAiNode * theFoundedNod = NULL;
 
-    if (NULL != usrAiNodeRoot) {
-        theFoundedNod = usrAiNodeRoot->FindNode(currentNodeName);
+    if (NULL != m_robotModelRoot) {
+        theFoundedNod = m_robotModelRoot->FindNode(currentNodeName);
         if (NULL == theFoundedNod) {
             DEBUG_OUT("%s,%d:node not exist",__FILE__,__LINE__);
             return;
@@ -664,8 +657,8 @@ void GLWidget::setZTransition(double zposition, const char * currentNodeName)
 {
     UsrAiNode * theFoundedNod = NULL;
 
-    if (NULL != usrAiNodeRoot) {
-        theFoundedNod = usrAiNodeRoot->FindNode(currentNodeName);
+    if (NULL != m_robotModelRoot) {
+        theFoundedNod = m_robotModelRoot->FindNode(currentNodeName);
         if (NULL == theFoundedNod) {
             DEBUG_OUT("%s,%d:node not exist",__FILE__,__LINE__);
             return;
@@ -674,39 +667,6 @@ void GLWidget::setZTransition(double zposition, const char * currentNodeName)
         updateGL();
     }
 }
-
-/*************************************************
-Function: // 函数名称
-Description: // 函数功能、性能等的描述
-更新各个轴的旋转值。
-Input: // 输入参数说明，包括每个参数的作
-// 用、取值说明及参数间关系。
-Output: // 对输出参数的说明。
-Return: // 函数返回值的说明
-Author: zhangjiankun
-Others: // 其它说明
-*************************************************/
-void GLWidget::upDateAxisesRotation(double *rotationArray, int sizeofArray)
-{
-    float * xyz = NULL;
-
-    if (NULL == rotationArray || NULL == modelCfgData
-            || NULL == usrAiNodeRoot || sizeofArray != modelCfgData->getAxisNum() - 1)
-    {
-        qWarning("%s,%d:uncorrect rotationArray or size %d", __FILE__, __LINE__, sizeofArray);
-        return;
-    }
-
-    //循环各个轴，设置 模型变换矩阵
-    for(unsigned int i = 1; i < modelCfgData->getAxisNum(); i++)
-    {
-        xyz = modelCfgData->get_axisRotation(i);
-        usrAiNodeRoot->setRotateXYZ(rotationArray[i-1],
-                  xyz[0], xyz[1], xyz[2], modelCfgData->get_nodeAxisName(i)); // 设置 模型变换矩阵
-    }
-    updateGL();
-}
-
 
 /*************************************************
 Function: // 函数名称

@@ -12,18 +12,18 @@ modelTree::modelTree(UsrAiNode *Node, QWidget *parent) :
     organization = "Trolltech";
     application = "Designer";
     qMenu = NULL;
-    NodeFromOut = Node;
 
     ui->setupUi(this);
     ui->treeWidget->setColumnCount(1);
     ui->treeWidget->setHeaderLabels( QStringList() << tr("Model Name") );
     ui->treeWidget->header()->setResizeMode(0, QHeaderView::Stretch);
-    //其中参数设置为Qt::CustomContextMenu，则点击鼠标右键会发射信号customContextMenuRequested(const QPoint),事实上设置之后反而不能工作。
+    //其中参数设置为Qt::CustomContextMenu，则点击鼠标右键会发射信号customContextMenuRequested(const QPoint),
+    //事实上设置之后反而不能工作。
     //ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     //ui->treeWidget->header()->setResizeMode(1, QHeaderView::Stretch);
 
     setWindowTitle(tr("Model Tree Viewer"));
-    showModelTree(NodeFromOut);
+    showModelTree(Node);
     creatModelTreeActions();
     //QWidget及其子类都可有右键菜单，customContextMenuRequested属于类QWidget，不用关联，因为已经自动关联了contextMenuEvent
     //connect(ui->treeWidget, SIGNAL(customContextMenuRequested(const QPoint)), this, SLOT(contextMenuEvent(const QPoint)));
@@ -40,11 +40,30 @@ modelTree::~modelTree()
     delete ShowModelFromRoot;
 }
 
+void modelTree::slotAddChildrenModel()
+{
+    //获取文件模型文件名
+    QString filename;
+    filename = QFileDialog::getOpenFileName(this,
+                               tr("Choose node model file"), ".",
+                               tr("Model files (*.stl)"));
+    if (filename.isEmpty())
+    {
+        QMessageBox::information(0, QObject::tr("Debug"),"Load model fail!");
+        return;
+    }
+
+    QMessageBox::information(0, QObject::tr("Debug"),"Load model success!");
+
+
+}
+
 void modelTree::slotHiddenModel()
 {
     UsrAiNode *Node = NULL;
 
     Node = NodeFromOut->FindNode(qPrintable(curItem->text(0)));
+
     Node->setHiddenFlagByName(true);
     emit modelChanged();
 }
@@ -105,7 +124,8 @@ void modelTree::accept()
 
     dialog.setWindowTitle(tr("Choose Settings"));
 
-    if (dialog.exec()) {
+    if (dialog.exec())
+    {
         qDebug("dialog.exec()");
         organization = orgLineEdit->text();
         application = appLineEdit->text();
@@ -116,6 +136,7 @@ void modelTree::accept()
 void modelTree::showModelTree(UsrAiNode *Node)
 {
     //QSettings settings(organization, application);
+    NodeFromOut = Node;
     ui->treeWidget->clear();
     addChildModels(Node, 0);
 
@@ -153,7 +174,7 @@ void modelTree::addChildModels(UsrAiNode *Node, QTreeWidgetItem *parent)
 void modelTree::creatModelTreeActions()
 {
     AddChildrenModel = new QAction(tr("&AddChildrenModel"),this);
-    connect(AddChildrenModel, SIGNAL(triggered()), this, SIGNAL(sigAddChildrenModel()));
+    connect(AddChildrenModel, SIGNAL(triggered()), this, SIGNAL(slotAddChildrenModel()));
 
     ModelPosition = new QAction(tr("&ModelPosition"), this);
     connect(ModelPosition, SIGNAL(triggered()), this, SLOT(sigModelPosition()));
@@ -173,7 +194,8 @@ void modelTree::creatModelTreeActions()
 
 void modelTree::contextMenuEvent(QContextMenuEvent * event)
 {
-    if (NULL == qMenu) {
+    if (NULL == qMenu)
+    {
         qMenu = new QMenu(ui->treeWidget);
     }
 
@@ -182,12 +204,13 @@ void modelTree::contextMenuEvent(QContextMenuEvent * event)
     //curItem = ui->treeWidget->itemAt(point);//这里不管是不是点击item上都为默认选中item
     //QtreeWidget.itemAt存在bug，不能正确返回。
     curItem = ui->treeWidget->selectedItems().first();
-    if(NULL == curItem) {
+    if(NULL == curItem)
+    {
        qDebug("Item is NULL");
        return;           //这种情况是右键的位置不在treeItem的范围内，即在空白位置右击
     }
     qDebug("currentItem is 0x%x, name is %s",curItem, qPrintable(curItem->text(0)));
-    qDebug()<<curItem->text(0);//Qstring调试信息输出方法
+
     qMenu->addAction(AddChildrenModel);
     qMenu->addAction(ModelPosition);
     qMenu->addAction(HiddenModel);

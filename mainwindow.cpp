@@ -46,6 +46,7 @@
 #include "ui/robotcontrolpanel.h"
 #include "ui/modeltree.h"
 #include "ui/position.h"
+#include "robotmodelcfg.h"
 
 MainWindow::MainWindow()
 {
@@ -57,8 +58,11 @@ MainWindow::MainWindow()
 
     setCentralWidget(centralWidget);
 
-    glWidget = new GLWidget;
     pixmapLabel = new QLabel;
+    m_modelCfgData = new RobotModelCfg;
+    glWidget = new GLWidget();
+    connect(m_modelCfgData, SIGNAL(sigCfgChanged(RobotModelCfg*)),
+            glWidget, SLOT(creatBasicNodeTree(RobotModelCfg *)) );
 
     glWidgetArea = new QScrollArea;
     glWidgetArea->setWidget(glWidget);
@@ -68,9 +72,6 @@ MainWindow::MainWindow()
     glWidgetArea->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     glWidgetArea->setMinimumSize(50, 50);
 
-    zSlider = createSlider(SIGNAL(zRotationChanged(int)),
-                           SLOT(setZRotation(int)));
-
     createActions();
     createMenus();
     createToolBars();
@@ -78,14 +79,12 @@ MainWindow::MainWindow()
     QGridLayout *centralLayout = new QGridLayout;
     centralLayout->addWidget(glWidgetArea, 0, 0);
 
-    centralLayout->addWidget(zSlider, 1, 0);
     centralWidget->setLayout(centralLayout);
 
-    zSlider->setValue(0 * 16);
 
-    setWindowTitle(tr("Grabber"));
+    setWindowTitle(tr("KND Robot Simulator"));
     setWindowIcon(QIcon(":/resource/imgs/controlPanel.jpg"));
-    resize(800, 600);
+    //resize(800, 600);
 }
 
 void MainWindow::renderIntoPixmap()
@@ -110,7 +109,7 @@ void MainWindow::clearPixmap()
 
 void MainWindow::about()
 {
-    QMessageBox::about(this, tr("About Grabber"),
+    QMessageBox::about(this, tr("About KND Robot Simulator"),
             tr("The <b>Grabber</b> example demonstrates two approaches for "
                "rendering OpenGL into a Qt pixmap."));
 }
@@ -160,6 +159,9 @@ void MainWindow::createActions()
 
     loadModelAct = new QAction(tr("&Load Robot"),this);
     connect(loadModelAct, SIGNAL(triggered()), this, SLOT(loadRobotModel()) );
+
+    saveModelAct = new QAction(tr("&Save Robot"),this);
+    connect(saveModelAct, SIGNAL(triggered()), this, SLOT(saveRobotModel()) );
 }
 
 void MainWindow::createMenus()
@@ -177,6 +179,7 @@ void MainWindow::createMenus()
 
     modelMenu = menuBar()->addMenu(tr("&Scene"));
     modelMenu->addAction(loadModelAct);
+    modelMenu->addAction(saveModelAct);
 }
 
 void MainWindow::createToolBars()
@@ -220,10 +223,55 @@ void MainWindow::loadRobotModel()
         return;
     }
 
-    //更新模型
-    glWidget->setAndUpdateRobotModel(qPrintable(filename));
+    //更新配置文件,更新时，会自动通知所有订阅cfgchanged信号的对象。
+    if (!m_modelCfgData->updateCfgFromXml(qPrintable(filename)))
+    {
+        return;
+    }
+
+    //更新opengl模型树
+    glWidget->creatBasicNodeTree(m_modelCfgData);
+
+    m_modelCfgData->debugInfo();
+    QMessageBox::information(0, QObject::tr("Debug"),"Load model success!");
+
+//    glWidget->setAndUpdateRobotModel(qPrintable(filename));
 
     qDebug("MainWindow load model");
+}
+
+void MainWindow::saveRobotModel()
+{
+    if (NULL == glWidget)
+    {
+        QMessageBox::warning(0, QObject::tr("DOM Parser"),
+                             QObject::tr("Error: Cannot load model!"));
+        return;
+    }
+
+    //获取文件模型文件名
+    QString filename = QFileDialog::getSaveFileName(this,
+                               tr("Save Robot Model to file"), ".",
+                               tr("Teaching lists files (*.xml)"));
+    if (filename.isEmpty())
+    {
+        qDebug("Filename is null %s",qPrintable(filename));
+        return;
+    }
+
+
+
+    if (!m_modelCfgData->saveCfgtoXml(qPrintable(filename)))
+    {
+        QMessageBox::warning(this, tr("Robot Model"),
+                             tr("Save Robot Model fail!"));
+        return;
+    }
+
+    QMessageBox::information(this, tr("Robot Model"),
+                         tr("Save Robot Model success!"));
+
+
 }
 
 /*************************************************
@@ -239,7 +287,7 @@ Others: // 其它说明
 void MainWindow::showPositionPanel()
 {
     if (!positionPanelUI) {
-        positionPanelUI = new position(glWidget->getNode(),this);
+        positionPanelUI = new position(glWidget->getRobotRootNode(),this);
         connect(positionPanelUI, SIGNAL(xTransitionChanged(double, const char *)),
                 glWidget, SLOT(setXTransition(double, const char *)));
         connect(positionPanelUI, SIGNAL(yTransitionChanged(double, const char *)),
@@ -249,6 +297,9 @@ void MainWindow::showPositionPanel()
         connect(glWidget, SIGNAL(xTransitionChanged(double)), positionPanelUI, SLOT(setXTransition(double)));
         connect(glWidget, SIGNAL(yTransitionChanged(double)), positionPanelUI, SLOT(setYTransition(double)));
         connect(glWidget, SIGNAL(zTransitionChanged(double)), positionPanelUI, SLOT(setZTransition(double)));
+
+        //订阅glWidget 机器手臂模型更新
+        connect(glWidget, SIGNAL(sigRotbotModelChanged(UsrAiNode *)), positionPanelUI, SLOT(modelUpdate(UsrAiNode *)));
     }
     if (positionPanelUI->isHidden())
     {
@@ -272,12 +323,16 @@ Others: // 其它说明
 *************************************************/
 void MainWindow::showModelPanel()
 {
-    if (!modelPanelUI) {
-        modelPanelUI = new modelTree(glWidget->getNode(), this);
+    if (!modelPanelUI)
+    {
+        modelPanelUI = new modelTree(glWidget->getRobotRootNode(), this);
         connect(modelPanelUI, SIGNAL(modelChanged()), glWidget, SLOT(updateGL()));
-        //connect(modelPanelUI, SIGNAL(sigModelPosition()), glWidget, SLOT(setNode()));
+
+        //订阅glWidget机器手臂模型更新
+        connect(m_modelCfgData, SIGNAL(sigRotbotModelChanged(UsrAiNode *)), modelPanelUI, SLOT(showModelTree(UsrAiNode *)));
         //connect(modelPanelUI, SIGNAL(sigHiddenModel()), glWidget, SLOT(hiddenModel(const char *)));
     }
+
     if (modelPanelUI->isHidden())
     {
         modelPanelUI->show();
@@ -302,16 +357,19 @@ void MainWindow::showControlPanel()
 {
     if (!controlPanelUI)
     {
-        controlPanelUI = new RobotControlPanel(glWidget->getNode(), this);
+        controlPanelUI = new RobotControlPanel(glWidget->getRobotRootNode(), m_modelCfgData, this);
 
-        connect(controlPanelUI, SIGNAL(sigModelChanged()),
-                glWidget, SLOT(updateGL()));
+        //通知opengl窗口更新.
+        connect(controlPanelUI, SIGNAL(sigModelChanged()), glWidget, SLOT(updateGL()));
 
-        connect(controlPanelUI, SIGNAL(axisRotationChanged(double *, int)),
-                glWidget, SLOT (upDateAxisesRotation(double *, int)) );
+        //订阅glWidget机器手臂模型更新.
+        connect(glWidget, SIGNAL(sigRotbotModelChanged(UsrAiNode *)), controlPanelUI, SLOT(updateRobotNode(UsrAiNode *)));
 
-
+        //订阅glWidget机器手臂模型的配置数据更新.
+        connect(m_modelCfgData, SIGNAL(sigCfgChanged(RobotModelCfg *)),
+                controlPanelUI, SLOT(updateRobotCfgData(RobotModelCfg *)));
     }
+
     if (controlPanelUI->isHidden())
     {
         controlPanelUI->show();

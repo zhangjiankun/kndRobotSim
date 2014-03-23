@@ -20,18 +20,19 @@ public:
     explicit modelTree(UsrAiNode *Node, QWidget *parent) ;
     ~modelTree();
 signals:
-    void sigAddChildrenModel();
     void sigModelPosition();
     void modelChanged();
+public slots:
+    void showModelTree(UsrAiNode *Node);
 private slots:
     void accept();
+    void slotAddChildrenModel();
     void slotHiddenModel();
     void slotShowModel();
     void slotHiddenModelFromNode();
     void slotShowModelFromRoot();
 
 private:
-    void showModelTree(UsrAiNode *Node);
     void addChildModels(UsrAiNode *Node, QTreeWidgetItem *parent);
     void contextMenuEvent(QContextMenuEvent * event);
     void creatModelTreeActions();

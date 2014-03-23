@@ -26,6 +26,30 @@ Modification:
 #include <assimp/postprocess.h>
 #include <queue>
 
+
+UsrAiNode::UsrAiNode()
+{
+    mParent = NULL;
+    mName = NULL;
+    fileName = NULL;
+    ishidden = false;
+    nodeType = MODULE;
+    m_angle = 0;
+    mTransformation.identity();//init with identity
+}
+
+/** Construction from a specific name */
+UsrAiNode::UsrAiNode(NodeType type, const char *name)
+{ // set all members to zero by default
+    mParent = NULL;
+    mName = name;
+    fileName = NULL;
+    ishidden = false;
+    nodeType = type;
+    m_angle = 0;
+    mTransformation.identity();//init with identity
+}
+
 /*************************************************
 Function: // 函数名称
 Description: // 函数功能、性能等的描述
@@ -53,8 +77,8 @@ UsrAiNode::~UsrAiNode() //当节点时，下挂的所有节点也均释放
     {
         for (showlistiterator = showList.begin(); showlistiterator != showList.end(); ++showlistiterator)
         {
-            DEBUG_OUT("%d,", *showlistiterator);
-            //glDeleteLists(*showlistiterator, 1); showlist不能删掉，因为别的地方也有可能会用到
+            qDebug("delete showlist: %d,", *showlistiterator);
+            glDeleteLists(*showlistiterator, 1);
         }
     }
 }
@@ -315,23 +339,29 @@ void UsrAiNode::callShowList(NodeType type)
     t.start();
 
     glMultMatrixf(mTransformation.getTranspose());
-    for (showlistiterator=showList.begin();showlistiterator!=showList.end(); ++showlistiterator)
+    if (!showList.empty())
     {
-        //DEBUG_OUT("call show list:%d",*showlistiterator);
-        if (false == ishidden && type == nodeType)
+        for (showlistiterator=showList.begin();showlistiterator!=showList.end(); ++showlistiterator)
         {
-              glCallList(*showlistiterator);
+            DEBUG_OUT("call show list:%d",*showlistiterator);
+            if (false == ishidden && type == nodeType)
+            {
+                  glCallList(*showlistiterator);
+            }
         }
     }
 
-    for(childrenItem = childrenList.begin(); childrenItem != childrenList.end(); ++childrenItem)
+    if (!childrenList.empty())
     {
-        glPushMatrix();
-        //在绘制每个物体前应该把当前状态先保存到堆栈中，再等绘制完后取出原来的状态
-        glPushAttrib(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_CURRENT_BIT);
-        (*childrenItem)->callShowList(type);
-        glPopMatrix();
-        glPopAttrib();
+        for(childrenItem = childrenList.begin(); childrenItem != childrenList.end(); ++childrenItem)
+        {
+            glPushMatrix();
+            //在绘制每个物体前应该把当前状态先保存到堆栈中，再等绘制完后取出原来的状态
+            glPushAttrib(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_CURRENT_BIT);
+            (*childrenItem)->callShowList(type);
+            glPopMatrix();
+            glPopAttrib();
+        }
     }
 
     //DEBUG_OUT("callShowList node %s.Time elapsed: %d ms",mName, t.elapsed());

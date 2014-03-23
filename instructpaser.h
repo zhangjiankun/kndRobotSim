@@ -6,7 +6,7 @@ class InstructPaser
 {
 public:
     InstructPaser();
-    static unsigned int paser(const QStringList &inLists, QStringList &outLists)
+    unsigned int paser(const QStringList &inLists, QStringList &outLists)
     {
         outLists = inLists;
         return 0;

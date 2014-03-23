@@ -8,29 +8,31 @@
 #include<iostream>
 #include <queue>
 
-
-
 position::position(UsrAiNode *Node, QWidget *parent) : //position 构建时，必须指定根节点。
     QDialog(parent),
     ui(new Ui::position)
 {
-    root = Node;
-    currentRootName = root->getmName();
+    root = NULL;
+    nodeModel = NULL;
+    currentRootName = Node->getmName();
     qDebug("position construct function %s", currentRootName);
 
-    modelUpdate();//生成模型。
-
     ui->setupUi(this);
+
+    modelUpdate(Node);//生成模型。
+
+    //When the user presses the shortcut key indicated by this label, the keyboard focus is transferred to
+    //the label's buddy widget.
     ui->label_combox->setBuddy(ui->comboBox);
-    ui->comboBox->setModel(nodeModel);//将模型绑定到下拉列表。
 }
 
 position::~position()
 {
+    delete nodeModel;
     delete ui;
 }
 
-void position::modelUpdate()
+void position::modelUpdate(UsrAiNode *node)
 {
     QStringList items;
     UsrAiNode* positionInQue = NULL;
@@ -38,8 +40,9 @@ void position::modelUpdate()
     std::list<UsrAiNode *>::iterator childrenItem;
     std::list<UsrAiNode *> tmpChildList;
 
-    if (NULL == root)
+    if (NULL == node)
         return;
+    root = node;
 
     //层序遍历
     aiNodeQue.push(root);
@@ -61,7 +64,12 @@ void position::modelUpdate()
 
     }
 
+    if (NULL != nodeModel)
+    {
+        delete nodeModel;
+    }
     nodeModel = new QStringListModel(items, this);
+    ui->comboBox->setModel(nodeModel);//将模型绑定到下拉列表。
 }
 
 void position::setXTransition(double value)
@@ -84,9 +92,11 @@ void position::on_comboBox_currentIndexChanged(const QString & text)  //下拉�
     UsrAiNode * theFoundedNod = NULL;
     globel = text;
 
-    if (NULL != root) {
+    if (NULL != root)
+    {
         theFoundedNod = root->FindNode(qPrintable(text));
-        if (NULL == theFoundedNod) {
+        if (NULL == theFoundedNod)
+        {
             DEBUG_OUT("%s,%d:node not exist",__FILE__,__LINE__);
             return;
         }

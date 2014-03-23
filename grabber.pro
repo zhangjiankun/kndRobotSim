@@ -436,8 +436,10 @@ SOURCES += glwidget.cpp \
     simulator.cpp \
     xmldomparaser.cpp \
     robotmodelcfg.cpp
+
 RESOURCES += RobotGUI.qrc
-QT           += opengl
+QT           += opengl \
+    RobotGUI.qrc
 QT  += xml
 LIBS += -lGLU\
 
