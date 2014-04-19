@@ -47,71 +47,58 @@
 #include "ui/modeltree.h"
 #include "ui/position.h"
 #include "robotmodelcfg.h"
+#include "prjcfg.h"
 
 MainWindow::MainWindow()
 {
-    centralWidget = new QWidget;
+    //常量
+    m_curRecentProjNum = MAX_RECENT_PROJECT_NUM / 2;
 
+    //全局变量
     controlPanelUI = NULL;
     modelPanelUI = NULL;
     positionPanelUI = NULL;
-
-    setCentralWidget(centralWidget);
-
-    pixmapLabel = new QLabel;
-    m_modelCfgData = new RobotModelCfg;
-    glWidget = new GLWidget();
-    connect(m_modelCfgData, SIGNAL(sigCfgChanged(RobotModelCfg*)),
-            glWidget, SLOT(creatBasicNodeTree(RobotModelCfg *)) );
-
-    glWidgetArea = new QScrollArea;
-    glWidgetArea->setWidget(glWidget);
-    glWidgetArea->setWidgetResizable(true);
-    glWidgetArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    glWidgetArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    glWidgetArea->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    glWidgetArea->setMinimumSize(50, 50);
+    glWidget = NULL;
+    m_modelCfgData = NULL;
+    m_prjCfg = new PrjCfg;
 
     createActions();
-    createMenus();
-    createToolBars();
+
+    //窗体构造
+    setWindowTitle(tr("KND Robot Simulator"));//标题
+    setWindowIcon(QIcon(":/resource/imgs/knd.png"));//图标
+    createMenus(); //菜单栏
+    createToolBars();//工具栏
+    createStatusBar();//状态栏
+
+    //主窗口区
+    QWidget *centralWidget = new QWidget;
+    setCentralWidget(centralWidget); //主窗口区顶层为centralWidget
 
     QGridLayout *centralLayout = new QGridLayout;
-    centralLayout->addWidget(glWidgetArea, 0, 0);
+    centralWidget->setLayout(centralLayout); //centralWidget下挂GridLayout(不释放随进程消亡)
+    m_glWidgetArea = new QScrollArea;
+    centralLayout->addWidget(m_glWidgetArea, 0, 0); //layout的0，0位置为ScrollArea（不释放随进程消亡）。
+    //glWidgetArea->setWidget(glWidget); //ScroolArea里面是OPENGL窗口
+    m_glWidgetArea->setWidgetResizable(true);
+    m_glWidgetArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_glWidgetArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_glWidgetArea->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    m_glWidgetArea->setMinimumSize(50, 50);
 
-    centralWidget->setLayout(centralLayout);
+    //通知工程失效。
+    modelMenu->setEnabled(false);//菜单没办法隐藏
+    controlTool->setHidden(true);
+    modelTool->setHidden(true);
+    m_saveProjectAct->setEnabled(false);
 
-
-    setWindowTitle(tr("KND Robot Simulator"));
-    setWindowIcon(QIcon(":/resource/imgs/controlPanel.jpg"));
-    //resize(800, 600);
+    resize(800, 480);
+    readSettings();
 }
 
-void MainWindow::renderIntoPixmap()
+MainWindow::~MainWindow()
 {
-    QSize size = getSize();
-    if (size.isValid()) {
-        QPixmap pixmap = glWidget->renderPixmap(size.width(), size.height());
-        setPixmap(pixmap);
-    }
-}
-
-void MainWindow::grabFrameBuffer()
-{
-    QImage image = glWidget->grabFrameBuffer();
-    setPixmap(QPixmap::fromImage(image));
-}
-
-void MainWindow::clearPixmap()
-{
-    setPixmap(QPixmap());
-}
-
-void MainWindow::about()
-{
-    QMessageBox::about(this, tr("About KND Robot Simulator"),
-            tr("The <b>Grabber</b> example demonstrates two approaches for "
-               "rendering OpenGL into a Qt pixmap."));
+    delete m_prjCfg;
 }
 
 void MainWindow::createActions()
@@ -119,32 +106,57 @@ void MainWindow::createActions()
     positionPanelAction = new QAction(tr("&position"), this);
     positionPanelAction->setIcon(QIcon(":/resource/imgs/position.png"));
     positionPanelAction->setShortcut(tr("Ctrl+P"));
-    connect(positionPanelAction, SIGNAL(triggered()), this, SLOT(showPositionPanel()));
+    connect(positionPanelAction, SIGNAL(triggered()),
+            this, SLOT(showPositionPanel()));
 
     modelPanelAction = new QAction(tr("&model"), this);
     modelPanelAction->setIcon(QIcon(":/resource/imgs/modelTree.png"));
     modelPanelAction->setShortcut(tr("Ctrl+M"));
-    connect(modelPanelAction, SIGNAL(triggered()), this, SLOT(showModelPanel()));
+    connect(modelPanelAction, SIGNAL(triggered()),
+            this, SLOT(showModelPanel()));
 
     controlPanelAction = new QAction(tr("&New"), this);
     controlPanelAction->setIcon(QIcon(":/resource/imgs/controlPanel1.png"));
     controlPanelAction->setShortcut(tr("Ctrl+P"));
     controlPanelAction->setStatusTip(tr("Control panel"));
-    connect(controlPanelAction, SIGNAL(triggered()), this, SLOT(showControlPanel()));
+    connect(controlPanelAction, SIGNAL(triggered()),
+            this, SLOT(showControlPanel()));
 
-    renderIntoPixmapAct = new QAction(tr("&Render into Pixmap..."), this);
-    renderIntoPixmapAct->setShortcut(tr("Ctrl+R"));
-    connect(renderIntoPixmapAct, SIGNAL(triggered()),
-            this, SLOT(renderIntoPixmap()));
+    m_newProject = new QAction(tr("&New"), this);
+    m_newProject->setIcon(QIcon(":/resource/imgs/new.png"));
+    m_newProject->setShortcut(tr("Ctrl+N"));
+    connect(m_newProject, SIGNAL(triggered()),
+            this, SLOT(newProject()));
 
-    grabFrameBufferAct = new QAction(tr("&Grab Frame Buffer"), this);
-    grabFrameBufferAct->setShortcut(tr("Ctrl+G"));
-    connect(grabFrameBufferAct, SIGNAL(triggered()),
-            this, SLOT(grabFrameBuffer()));
+    m_openProject = new QAction(tr("&Open..."), this);
+    m_openProject->setIcon(QIcon(":/resource/imgs/open.png"));
+    m_openProject->setShortcut(tr("Ctrl+O"));
+    connect(m_openProject, SIGNAL(triggered()),
+            this, SLOT(openProject()));
 
-    clearPixmapAct = new QAction(tr("&Clear Pixmap"), this);
-    clearPixmapAct->setShortcut(tr("Ctrl+L"));
-    connect(clearPixmapAct, SIGNAL(triggered()), this, SLOT(clearPixmap()));
+    m_closeProject = new QAction(tr("&Close"), this);
+    m_closeProject->setShortcut(tr("Ctrl+C"));
+    connect(m_closeProject, SIGNAL(triggered()),
+            this, SLOT(closeProject()));
+
+    m_saveProjectAct = new QAction(tr("&Save"), this);
+    m_saveProjectAct->setIcon(QIcon(":/resource/imgs/save.png"));
+    m_saveProjectAct->setShortcut(tr("Ctrl+S"));
+    connect(m_saveProjectAct, SIGNAL(triggered()),
+            this, SLOT(saveProject()));
+
+    m_saveAsProjectAct = new QAction(tr("&Save As..."), this);
+    connect(m_saveAsProjectAct, SIGNAL(triggered()),
+            this, SLOT(saveAsProject()));
+
+    for (int i = 0; i < m_curRecentProjNum; ++i)
+    {
+        m_recentProjectActions[i] = new QAction(this);
+        m_recentProjectActions[i]->setVisible(false);
+        connect(m_recentProjectActions[i], SIGNAL(triggered()),
+                this, SLOT(openRecentProjectFile()));
+    }
+
 
     exitAct = new QAction(tr("E&xit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
@@ -166,28 +178,39 @@ void MainWindow::createActions()
 
 void MainWindow::createMenus()
 {
-    fileMenu = menuBar()->addMenu(tr("&File"));
-    fileMenu->addAction(renderIntoPixmapAct);
-    fileMenu->addAction(grabFrameBufferAct);
-    fileMenu->addAction(clearPixmapAct);
+    fileMenu = menuBar()->addMenu(tr("&Project"));
+    fileMenu->addAction(m_newProject);
+    fileMenu->addAction(m_openProject);
+    fileMenu->addAction(m_closeProject);
+    fileMenu->addAction(m_saveProjectAct);
+    fileMenu->addAction(m_saveAsProjectAct);
+    m_separatorAction = fileMenu->addSeparator();
+    for (int i = 0; i < m_curRecentProjNum; ++i)
+    {
+        fileMenu->addAction(m_recentProjectActions[i]);
+    }
     fileMenu->addSeparator();
     fileMenu->addAction(exitAct);
+
+    modelMenu = menuBar()->addMenu(tr("&Robot"));
+    modelMenu->addAction(loadModelAct);
+    modelMenu->addAction(saveModelAct);
 
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(aboutQtAct);
-
-    modelMenu = menuBar()->addMenu(tr("&Scene"));
-    modelMenu->addAction(loadModelAct);
-    modelMenu->addAction(saveModelAct);
 }
 
 void MainWindow::createToolBars()
 {
-    controlTool = addToolBar(tr("&controlTool"));
-    controlTool->addAction(controlPanelAction);
-    controlTool->addSeparator();
-    controlTool->addAction(exitAct);
+    m_projectTool = addToolBar(tr("&project"));
+    m_projectTool->addAction(m_newProject);
+    m_projectTool->addAction(m_openProject);
+    m_projectTool->addAction(m_saveProjectAct);
+    m_projectTool->addAction(exitAct);
+
+//    controlTool->addSeparator();
+//    controlTool->addAction(exitAct);
 
     modelTool = addToolBar(tr("&modelTool"));
     modelTool->addAction(modelPanelAction);
@@ -200,15 +223,316 @@ void MainWindow::createContextMenu()
 }
 void MainWindow::createStatusBar()
 {
+    QLabel *locationLabel = new QLabel(tr(" status: "));
+    locationLabel->setAlignment(Qt::AlignHCenter);//By default, the contents of the label are left-aligned and vertically-centered
+    locationLabel->setMinimumSize(locationLabel->sizeHint());//sizeHint窗口移动时的步进单位。
 
-    ;
+    QLabel *formulaLabel = new QLabel;
+    formulaLabel->setIndent(3);//字体离对齐边界的缩进
+
+    statusBar()->addWidget(locationLabel);
+    statusBar()->addWidget(formulaLabel, 1);
+
 }
+
+
+void MainWindow::about()
+{
+    QMessageBox::about(this, tr("About KND Robot Simulator"),
+            tr("<h3>KND Robot Simulator version 0.10</h3>\n\n\n"
+               "<p>The <font color=black>KND Robot Simulator</font> is 3D simulator for KND's Robots.</p>"
+               "<p>Copyright (C) KND., 2004-2015.</p>"
+               "<p>http://www.knd.net</p>"
+               "Licensed under GNU GPL license version 3."));
+}
+
+void MainWindow::readSettings()
+{
+    QSettings settings("KND Inc.", "RobotSimulator");
+
+//    restoreGeometry(settings.value("geometry").toByteArray());
+
+    m_recentProjectFiles = settings.value("recentFiles").toStringList();
+    updateRecentProjectFileActions();
+
+//    bool showGrid = settings.value("showGrid", true).toBool();
+//    showGridAction->setChecked(showGrid);
+
+//    bool autoRecalc = settings.value("autoRecalc", true).toBool();
+//    autoRecalcAction->setChecked(autoRecalc);
+}
+void MainWindow::writeSettings()
+{
+    QSettings settings("KND Inc.", "RobotSimulator");
+
+//    settings.setValue("geometry", saveGeometry());
+    settings.setValue("recentFiles", m_recentProjectFiles);
+//    settings.setValue("showGrid", showGridAction->isChecked());
+//    settings.setValue("autoRecalc", autoRecalcAction->isChecked());
+}
+bool MainWindow::okToContinue()
+{
+    if (isWindowModified())
+    {
+        int r = QMessageBox::warning(this, tr("Spreadsheet"),
+                        tr("The document has been modified.\n"
+                           "Do you want to save your changes?"),
+                        QMessageBox::Yes | QMessageBox::Default,
+                        QMessageBox::No,
+                        QMessageBox::Cancel | QMessageBox::Escape);
+        if (r == QMessageBox::Yes)
+        {
+            return save();
+        }
+        else if (r == QMessageBox::Cancel)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (okToContinue())
+    {
+        writeSettings();
+        event->accept();
+    }
+    else
+    {
+        event->ignore();
+    }
+}
+
+void MainWindow::newProject()
+{
+    if (okToContinue())
+    {
+        //关闭原工程资源
+        delete glWidget;
+        glWidget = new GLWidget();
+        delete m_modelCfgData;
+        m_modelCfgData =  new RobotModelCfg;
+
+        connect(m_modelCfgData, SIGNAL(sigCfgChanged(RobotModelCfg*)),
+                glWidget, SLOT(synCfgToModeltree(RobotModelCfg *)) );
+
+        m_glWidgetArea->setWidget(glWidget);
+        //通知工程生效
+        modelMenu->setEnabled(true);
+        controlTool->setHidden(false);
+        modelTool->setHidden(false);
+        m_saveProjectAct->setEnabled(true);
+        setCurrentProjectFile("");
+        resize(1024, 680);
+    }
+}
+
+void MainWindow::openProject()
+{
+    if (okToContinue())
+    {
+        QString fileName = QFileDialog::getOpenFileName(this,
+                                   tr("Open Spreadsheet"), ".",
+                                   tr("Spreadsheet files (*.prj)"));
+        if (!fileName.isEmpty())
+        {
+            if (!loadPrjFile(fileName))
+            {
+                return;
+            }
+        }
+    }
+}
+
+void MainWindow::openRecentProjectFile()
+{
+    if (okToContinue())
+    {
+        QAction *action = qobject_cast<QAction *>(sender());
+        if (action)
+        {
+            if (!loadPrjFile(action->data().toString()))
+            {
+                return;
+            }
+
+        }
+    }
+}
+
+bool MainWindow::loadPrjFile(const QString &fileName)
+{
+    if (!m_prjCfg->readCfg(fileName))
+    {
+        statusBar()->showMessage(tr("Loading canceled"), 2000);
+        return false;
+    }
+
+    setCurrentProjectFile(fileName);
+
+    //关闭原工程资源
+    delete glWidget;
+    glWidget = NULL;
+    delete m_modelCfgData;
+    m_modelCfgData = NULL;
+
+    //从工程配置文件中，获取RobotCfg，模型文件，环境文件等。
+    m_modelCfgData = new RobotModelCfg;
+    glWidget = new GLWidget();
+    connect(m_modelCfgData, SIGNAL(sigCfgChanged(RobotModelCfg*)),
+            glWidget, SLOT(synCfgToModeltree(RobotModelCfg *)) );
+
+    m_glWidgetArea->setWidget(glWidget);
+    //通知工程生效
+    modelMenu->setEnabled(true);
+    controlTool->setHidden(false);
+    modelTool->setHidden(false);
+    m_saveProjectAct->setEnabled(true);
+
+    //更新配置文件,更新时，会自动通知所有订阅cfgchanged信号的对象。
+    if ( !m_prjCfg->getRobotfilename().isEmpty()
+            && !m_modelCfgData->updateCfgFromXml(qPrintable(m_prjCfg->getRobotfilename())))
+    {
+        return false;
+    }
+
+    m_modelCfgData->debugInfo();
+    statusBar()->showMessage(tr("File loaded"), 5000);
+
+    resize(1024, 680);
+
+    return true;
+}
+
+void MainWindow::closeProject()
+{
+    if (okToContinue())
+    {
+        setWindowTitle(tr("KND Robot Simulator"));//标题
+        //通知工程失效。
+        modelMenu->setDisabled(true);
+        controlTool->setDisabled(true);
+        modelTool->setDisabled(true);
+
+        //回收资源
+        delete glWidget;
+        glWidget = NULL;
+        delete m_modelCfgData;
+        m_modelCfgData = NULL;
+
+        resize(800, 480);
+    }
+}
+
+void MainWindow::saveProject()
+{
+    save();
+}
+
+void MainWindow::saveAsProject()
+{
+    saveAs();
+}
+
+
+bool MainWindow::save()
+{
+    if (m_curProjectFile.isEmpty())
+    {
+        return saveAs();
+    }
+    else
+    {
+        return saveProjectFile(m_curProjectFile);
+    }
+}
+
+bool MainWindow::saveAs()
+{
+    QString fileName = QFileDialog::getSaveFileName(this,
+                               tr("Save Robot project file"), ".",
+                               tr("Spreadsheet files (*.prj)"));
+    if (fileName.isEmpty())
+    {
+        return false;
+    }
+
+    return saveProjectFile(fileName);
+}
+
+bool MainWindow::saveProjectFile(const QString &fileName)
+{
+    if (!m_prjCfg->saveCfg(fileName))
+    {
+        statusBar()->showMessage(tr("Saving canceled"), 2000);
+        return false;
+    }
+
+    setCurrentProjectFile(fileName);
+    statusBar()->showMessage(tr("File saved"), 2000);
+    return true;
+}
+
+QString MainWindow::strippedName(const QString &fullFileName)
+{
+    return QFileInfo(fullFileName).fileName();
+}
+
+void MainWindow::updateRecentProjectFileActions()
+{
+    QMutableStringListIterator i(m_recentProjectFiles);
+    while (i.hasNext())
+    {
+        if (!QFile::exists(i.next()))
+            i.remove();
+    }
+
+    for (int j = 0; j < m_curRecentProjNum; ++j)
+    {
+        if (j < m_recentProjectFiles.count())
+        {
+            QString text = tr("&%1 %2")
+                           .arg(j + 1)
+                           .arg(m_recentProjectFiles[j]);
+            m_recentProjectActions[j]->setText(text);
+            m_recentProjectActions[j]->setData(m_recentProjectFiles[j]);
+            m_recentProjectActions[j]->setVisible(true);
+        }
+        else
+        {
+            m_recentProjectActions[j]->setVisible(false);
+        }
+    }
+    m_separatorAction->setVisible(!m_recentProjectFiles.isEmpty());
+}
+//将当前文件名保存到全局变量。更新最近打开的工程全局变量。并将这两个值保存到工程文件中。设置窗口标题。
+//同时，设置窗口为未修改状态。
+void MainWindow::setCurrentProjectFile(const QString &fileName)
+{
+    m_curProjectFile = fileName;
+    setWindowModified(false);
+
+    QString shownName = tr("Untitled");//如果输入filenname是空字符串，则显示
+    if (!fileName.isEmpty())
+    {
+        shownName = strippedName(fileName);
+        m_recentProjectFiles.removeAll(fileName);
+        m_recentProjectFiles.prepend(fileName);
+        updateRecentProjectFileActions();
+    }
+
+    setWindowTitle(tr("%1[*] - %2").arg(shownName)
+                                   .arg(tr("Robot Simulator Project")));
+}
+
 
 void MainWindow::loadRobotModel()
 {
     if (NULL == glWidget)
     {
-        QMessageBox::warning(0, QObject::tr("DOM Parser"),
+        QMessageBox::warning(0, QObject::tr("Load Robot Model"),
                              QObject::tr("Error: Cannot load model!"));
         return;
     }
@@ -220,17 +544,26 @@ void MainWindow::loadRobotModel()
                                tr("Model files (*.xml)"));
     if (filename.isEmpty())
     {
+        QMessageBox::warning(0, QObject::tr("Load Robot Model"),
+                             QObject::tr("Error: Filename is empty!"));
         return;
     }
 
     //更新配置文件,更新时，会自动通知所有订阅cfgchanged信号的对象。
     if (!m_modelCfgData->updateCfgFromXml(qPrintable(filename)))
     {
+        //调用函数中失败提示用户。这里不在重复抛出提示。
+        //恢复已经被配置的数据。
+        m_modelCfgData->InitCfg();
         return;
     }
 
+    //更新内存中的projfile中保存的机器人模型文件。
+    m_prjCfg->setRobotFilename(filename);
+    setWindowModified(true);
+
     //更新opengl模型树
-    glWidget->creatBasicNodeTree(m_modelCfgData);
+    glWidget->synCfgToModeltree(m_modelCfgData);
 
     m_modelCfgData->debugInfo();
     QMessageBox::information(0, QObject::tr("Debug"),"Load model success!");
@@ -268,11 +601,53 @@ void MainWindow::saveRobotModel()
         return;
     }
 
+    //更新到projfile中
+    m_prjCfg->setRobotFilename(filename);
+    setWindowModified(false);
+
     QMessageBox::information(this, tr("Robot Model"),
                          tr("Save Robot Model success!"));
 
 
 }
+
+/*************************************************
+Function: // 函数名称
+Description: // 注册用户窗口。或者考虑将glWidget定义为虚拟类。
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+bool MainWindow::registerCenterWidget(QWidget *centerWidget)
+{
+    Q_ASSERT(m_usrDefinedWidget == NULL);
+    if (m_usrDefinedWidget == NULL)
+    {
+        return false;
+    }
+
+    m_usrDefinedWidget = centerWidget;
+    return true;
+}
+
+/*************************************************
+Function: // 函数名称
+Description: // 注册配置文件。
+Input: // 输入参数说明，包括每个参数的作
+// 用、取值说明及参数间关系。
+Output: // 对输出参数的说明。
+Return: // 函数返回值的说明
+Author: zhangjiankun
+Others: // 其它说明
+*************************************************/
+bool MainWindow::registerCfg(Cfg *cfg)
+{
+    return true;
+}
+
 
 /*************************************************
 Function: // 函数名称
@@ -286,7 +661,8 @@ Others: // 其它说明
 *************************************************/
 void MainWindow::showPositionPanel()
 {
-    if (!positionPanelUI) {
+    if (!positionPanelUI)
+    {
         positionPanelUI = new position(glWidget->getRobotRootNode(),this);
         connect(positionPanelUI, SIGNAL(xTransitionChanged(double, const char *)),
                 glWidget, SLOT(setXTransition(double, const char *)));
@@ -394,14 +770,6 @@ QSlider *MainWindow::createSlider(const char *changedSignal,
     return slider;
 }
 
-void MainWindow::setPixmap(const QPixmap &pixmap)
-{
-    pixmapLabel->setPixmap(pixmap);
-    QSize size = pixmap.size();
-    if (size - QSize(1, 0) == pixmapLabelArea->maximumViewportSize())
-        size -= QSize(1, 0);
-    pixmapLabel->resize(size);
-}
 
 QSize MainWindow::getSize()
 {

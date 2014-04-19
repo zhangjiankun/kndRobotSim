@@ -10,13 +10,14 @@ public:
     ~RobotModelCfg();
     bool updateCfgFromXml(const char *xmlFilename);
     bool saveCfgtoXml(const char *xmlFilename);
-    bool clearCfg();
+    void InitCfg();
     qint32 getAxisNum(){ return AxisNum; }
     const char * get_rootName(unsigned int index) { return m_modelName[index]; }
     const char * get_nodeAxisName(unsigned int index) { return nodeAxisName[index]; }
     float * get_axisRotation(unsigned int index) { return axisRotation[index]; }
     float * get_axisPosition(unsigned int index) { return axisPosition[index]; }
     float * get_axisRotAttr(unsigned int index) { return m_axisRotAttr[index]; }
+    float get_scale() { return m_scale;}
     const char * get_filename(unsigned int index);
     void debugInfo();
 signals:
@@ -34,6 +35,8 @@ private:
     void set_axisRotation(float rx, float ry, float rz, unsigned int index);
     void set_axisPosition(float x, float y, float z, unsigned int index);
     void set_axisRotAttr(float min, float max, unsigned int index);
+    void set_scale(float scale) { m_scale = scale;}
+    bool parseScaleElement(const QDomElement &element);
 
 private:
     enum { MAX_LEN =10 };
@@ -43,8 +46,9 @@ private:
     char *m_modelName[MAX_LEN]; //机器人模型中，每一个关节模型的名字
     char *nodeAxisName[MAX_LEN];//机器人模型中，每一个关节坐标轴的名字
     char *m_filename[MAX_LEN]; //机器人模型中，每一个关节模型的模型文件名
-    float axisRotation[MAX_LEN][3];
-    float axisPosition[MAX_LEN][3];
+    float axisRotation[MAX_LEN][3]; //上一个电机移动到当前电机坐标时，转动轴的方向
+    float axisPosition[MAX_LEN][3]; //表中当前项坐标减去上一个坐标的值，表示当前坐标相对上一个坐标的位移。
     float m_axisRotAttr[MAX_LEN][2];//转轴属性，0：最小值；1：最大值；
+    float m_scale; //缩小倍数
 };
 #endif // ROBOTMODELCFG_H

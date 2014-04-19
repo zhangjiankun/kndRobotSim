@@ -26,9 +26,9 @@ void set_aiMatrix4x4(aiMatrix4x4 &mat, float m[]);
 void set_aiMatrix4x4(aiMatrix4x4 &mat, double m[]);
 void aiMatrix4x4_to_float(const aiMatrix4x4 &mat, float m[]);
 
-void recursive_render (const struct aiScene *sc, const struct aiNode* nd);
-extern const struct aiScene* scene ;
-extern GLuint scene_list ;
-extern aiVector3D scene_min, scene_max, scene_center;
+void recursive_render (const struct aiScene *sc, const struct aiNode* nd, float scale);
+//extern const struct aiScene* scene ;
+//extern GLuint scene_list ;
+//extern aiVector3D scene_min, scene_max, scene_center;
 
 #endif // LOADMODEL_H

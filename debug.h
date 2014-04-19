@@ -9,10 +9,10 @@
     #define DEBUG_OUT qDebug
 #elif 2==_DEBUG_TRACE_CMH_  //打印文件名、行号
     #define DEBUG_OUT(fmt,...) \
-        qDebug("debug info %s(%d): "fmt, __FILE__, __LINE__, ##__VA_ARGS__)
+        qDebug("%s(%d): "fmt, __FILE__, __LINE__, ##__VA_ARGS__)
 #elif 3==_DEBUG_TRACE_CMH_  //打印文件名、行号、函数名
     #define DEBUG_OUT(fmt,...) \
-        qDebug("debug info %s(%d)-<%s>: "fmt, __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+        qDebug("%s(%d)-<%s>: "fmt, __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #else
     #define DEBUG_OUT(fmt,...) (void *)0
 #endif //_TRACE_CMH_DEBUG_
@@ -21,10 +21,10 @@
     #define WAR_OUT qWarning
 #elif 2==_WAR_TRACE_CMH_  //打印文件名、行号
     #define WAR_OUT(fmt,...) \
-        qWarning("warning info %s(%d): "fmt, __FILE__, __LINE__, ##__VA_ARGS__)
+        qWarning("%s(%d): "fmt, __FILE__, __LINE__, ##__VA_ARGS__)
 #elif 3==_WAR_TRACE_CMH_  //打印文件名、行号、函数名
     #define WAR_OUT(fmt,...) \
-        qWarning("warning info %s(%d)-<%s>: "fmt, __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+        qWarning("%s(%d)-<%s>: "fmt, __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #else
     #define WAR_OUT(fmt,...) (void *)0
 #endif //_TRACE_CMH_DEBUG_

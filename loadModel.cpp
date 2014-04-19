@@ -145,9 +145,11 @@ void get_bounding_box_for_node (const aiNode* nd,
     prev = *trafo;
     aiMultiplyMatrix4(trafo,&nd->mTransformation);
 
-    for (; n < nd->mNumMeshes; ++n) {
+    for (; n < nd->mNumMeshes; ++n)
+    {
         const aiMesh* mesh = scene->mMeshes[nd->mMeshes[n]];
-        for (t = 0; t < mesh->mNumVertices; ++t) {
+        for (t = 0; t < mesh->mNumVertices; ++t)
+        {
 
             aiVector3D tmp = mesh->mVertices[t];
             aiTransformVecByMatrix4(&tmp,trafo);
@@ -162,7 +164,8 @@ void get_bounding_box_for_node (const aiNode* nd,
         }
     }
 
-    for (n = 0; n < nd->mNumChildren; ++n) {
+    for (n = 0; n < nd->mNumChildren; ++n)
+    {
         get_bounding_box_for_node(nd->mChildren[n],min,max,trafo);
     }
     *trafo = prev;
@@ -176,25 +179,26 @@ void get_bounding_box (aiVector3D* min, aiVector3D* max)
 
     min->x = min->y = min->z =  1e10f;
     max->x = max->y = max->z = -1e10f;
-    get_bounding_box_for_node(scene->mRootNode,min,max,&trafo);
+    get_bounding_box_for_node(scene->mRootNode, min, max, &trafo);
 }
 
-int loadasset (const char* path)
+const aiScene* loadasset (const char* path)
 {
-    // we are taking one of the postprocessing presets to avoid
-    // spelling out 20+ single postprocessing flags here.
+    const aiScene* scene = NULL;
+
     scene = aiImportFile(path,aiProcessPreset_TargetRealtime_Fast);
 
-    if (scene) {
+    if (scene)
+    {
         get_bounding_box(&scene_min,&scene_max);
         scene_center.x = (scene_min.x + scene_max.x) / 2.0f;
         scene_center.y = (scene_min.y + scene_max.y) / 2.0f;
         scene_center.z = (scene_min.z + scene_max.z) / 2.0f;
         qDebug("min:%f %f %f;max:%f %f %f",scene_min.x,scene_min.y,scene_min.z,
                scene_max.x,scene_max.y,scene_max.z);
-        return 0;
+        return scene;
     }
-    return 1;
+    return scene;
 }
 void printMatri4x4(aiMatrix4x4 &m, char *tip)
 {
@@ -208,24 +212,24 @@ void printMatri4x4(double *m, char *tip)
            m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7],
            m[8],m[9],m[10],m[11],m[12],m[13],m[14],m[15]);
 }
-void recursive_render (const struct aiScene *sc, const struct aiNode* nd)
+void recursive_render (const struct aiScene *sc, const struct aiNode* nd, float scale)
 {
     unsigned int i;
     unsigned int n = 0, t;
     aiMatrix4x4 m = nd->mTransformation;
-    qDebug("%f %f %f %f \n%f %f %f %f \n%f %f %f %f \n%f %f %f %f \n",
-           m[0][0],m[0][1],m[0][2],m[0][3],m[1][0],m[1][1],m[1][2],m[1][3],
-           m[2][0],m[2][1],m[2][2],m[2][3],m[3][0],m[3][1],m[3][2],m[3][3]);
+//    qDebug("%f %f %f %f \n%f %f %f %f \n%f %f %f %f \n%f %f %f %f \n",
+//           m[0][0],m[0][1],m[0][2],m[0][3],m[1][0],m[1][1],m[1][2],m[1][3],
+//           m[2][0],m[2][1],m[2][2],m[2][3],m[3][0],m[3][1],m[3][2],m[3][3]);
     // upfate transform
     aiTransposeMatrix4(&m);
     glPushMatrix();
     // scale the whole asset to fit into our view frustum
-    float tmp = scene_max.x-scene_min.x;
-    tmp = aisgl_max(scene_max.y - scene_min.y,tmp);
-    tmp = aisgl_max(scene_max.z - scene_min.z,tmp);
-    qDebug("scale:%f",tmp);
-    tmp = 5.f / tmp;
-    tmp = 1.f / 100;//zjk
+//    float tmp = scene_max.x-scene_min.x;
+//    tmp = aisgl_max(scene_max.y - scene_min.y,tmp);
+//    tmp = aisgl_max(scene_max.z - scene_min.z,tmp);
+    qDebug("scale:%f",scale);
+//    tmp = 5.f / tmp;
+    float tmp = 1.0f / scale;//zjk
 
     glScalef(tmp, tmp, tmp);
     // center the model
@@ -237,21 +241,28 @@ void recursive_render (const struct aiScene *sc, const struct aiNode* nd)
     //       m[2][0],m[2][1],m[2][2],m[2][3],m[3][0],m[3][1],m[3][2],m[3][3]);
 
     // draw all meshes assigned to this node
-    for (; n < nd->mNumMeshes; ++n) {
-        const struct aiMesh* mesh = scene->mMeshes[nd->mMeshes[n]];
+    for (; n < nd->mNumMeshes; ++n)
+    {
+        const struct aiMesh* mesh = sc->mMeshes[nd->mMeshes[n]];
 
         apply_material(sc->mMaterials[mesh->mMaterialIndex]);
 
-        if(mesh->mNormals == NULL) {
+        if(mesh->mNormals == NULL)
+        {
             glDisable(GL_LIGHTING);
-        } else {
+        }
+        else
+        {
             glEnable(GL_LIGHTING);
         }
-        for (t = 0; t < mesh->mNumFaces; ++t) { //facet数目
+
+        for (t = 0; t < mesh->mNumFaces; ++t)
+        { //facet数目
             const struct aiFace* face = &mesh->mFaces[t];
             GLenum face_mode;
 
-            switch(face->mNumIndices) {
+            switch(face->mNumIndices)
+            {
                 case 1: face_mode = GL_POINTS; break;
                 case 2: face_mode = GL_LINES; break;
                 case 3: face_mode = GL_TRIANGLES; break;
@@ -261,7 +272,8 @@ void recursive_render (const struct aiScene *sc, const struct aiNode* nd)
 
             glBegin(face_mode);
 
-            for(i = 0; i < face->mNumIndices; i++) {
+            for(i = 0; i < face->mNumIndices; i++)
+            {
                 int index = face->mIndices[i];
                 if(mesh->mColors[0] != NULL)
                 {
@@ -279,13 +291,15 @@ void recursive_render (const struct aiScene *sc, const struct aiNode* nd)
 
             glEnd();
         }
-        qDebug("nd->mNumChildren=%d,nd->mNumMeshes=%d,mesh->mNormals=%d, mesh->mNumFaces=%d",
-               nd->mNumChildren,nd->mNumMeshes,mesh->mNormals, mesh->mNumFaces);
+
+//        qDebug("nd->mNumChildren=%d,nd->mNumMeshes=%d,mesh->mNormals=%d, mesh->mNumFaces=%d",
+//               nd->mNumChildren,nd->mNumMeshes,mesh->mNormals, mesh->mNumFaces);
     }
 
     // draw all children
-    for (n = 0; n < nd->mNumChildren; ++n) {
-        recursive_render(sc, nd->mChildren[n]);
+    for (n = 0; n < nd->mNumChildren; ++n)
+    {
+        recursive_render(sc, nd->mChildren[n], scale);
     }
 
 

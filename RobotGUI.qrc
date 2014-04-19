@@ -12,5 +12,9 @@
         <file>resource/imgs/tiankong.jpg</file>
         <file>resource/imgs/start_free.png</file>
         <file>resource/imgs/stop_free.png</file>
+        <file>resource/imgs/new.png</file>
+        <file>resource/imgs/open.png</file>
+        <file>resource/imgs/save.png</file>
+        <file>resource/imgs/knd.png</file>
     </qresource>
 </RCC>

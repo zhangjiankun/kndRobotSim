@@ -41,11 +41,17 @@
 #include <QApplication>
 #include<QWidget>
 #include "mainwindow.h"
+#include "log.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+
+    //注册日志勾子
+    qInstallMsgHandler(customMessageHandler);
+
     MainWindow mainWin;
     mainWin.show();
+
     return app.exec();
 }

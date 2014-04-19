@@ -1,0 +1,4 @@
+#! /bin/bash
+sudo rm /usr/bin/kndrosim
+read -n1 -p Press any key to continue...
+

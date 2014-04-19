@@ -279,7 +279,10 @@ HEADERS += debug.h \
     instructpaser.h \
     simulator.h \
     xmldomparaser.h \
-    robotmodelcfg.h
+    robotmodelcfg.h \
+    cfg.h \
+    prjcfg.h \
+    log.h
 FORMS += ui/controlPanel.ui \
     ui/modeltree.ui \
     ui/position.ui
@@ -435,11 +438,13 @@ SOURCES += glwidget.cpp \
     instructpaser.cpp \
     simulator.cpp \
     xmldomparaser.cpp \
-    robotmodelcfg.cpp
+    robotmodelcfg.cpp \
+    cfg.cpp \
+    prjcfg.cpp \
+    log.cpp
 
 RESOURCES += RobotGUI.qrc
 QT           += opengl \
-    RobotGUI.qrc
 QT  += xml
 LIBS += -lGLU\
 
@@ -455,3 +460,7 @@ maemo5: include($$QT_SOURCE_TREE/examples/maemo5pkgrules.pri)
 symbian: warning(This example might not fully work on Symbian platform)
 maemo5: warning(This example does not work on Maemo platform)
 simulator: warning(This example might not fully work on Simulator platform)
+
+OTHER_FILES += \
+    build/release_with_so.sh \
+    build/release_debian.sh

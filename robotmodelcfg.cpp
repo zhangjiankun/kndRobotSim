@@ -7,46 +7,16 @@
 
 RobotModelCfg::RobotModelCfg()
 {
-    AxisNum = 7;
+    m_robotname = (char *)malloc(MAX_FILENAME_LEN * sizeof(char *));
 
-    for (unsigned char i = 0; i < sizeof(m_filename)/sizeof(const char *); i++)
+    for (unsigned char i = 0; i < MAX_LEN; i++)
     {
         m_modelName[i] = (char *)malloc(MAX_FILENAME_LEN * sizeof(char *));
         m_filename[i] = (char *)malloc(MAX_FILENAME_LEN * sizeof(char *)) ;
         nodeAxisName[i] = (char *)malloc(MAX_FILENAME_LEN * sizeof(char *));
     }
 
-    const char *CFGDATArootName[] = {"base","S","L","U","R","B","T"};//world理解为 arm.
-    const char *CFGDATAnodeAxis[] = {"baseAxis","SAxis","LAxis","UAxis","RAxis","BAxis","TAxis"};
-
-    //上一个电机移动到当前电机坐标时，转动轴的方向
-    float CFGDATAaxisRotation[][3] = { {0,0,1},
-                                    {0,0,1},{0,1,0},{0,-1,0},
-                                    {1,0,0},{0,1,0},{1,0,0}};
-    //表中当前项坐标减去上一个坐标的值，表示当前坐标相对上一个坐标的位移。
-    float CFGDATAaxisPosition[][3] = {{0.f,0.f,0.f},
-                                     {0.f,0.f,-2.9f},{1.4f,1.3f,0.0f},{1.5f,1.3f,8.8f},
-                                     {4.6f,0.f,10.5f},{11.7f,-1.2f,10.5f},{13.3f,0.f,10.5f}};
-
-    const char *CFGDATAfilename[] = {
-        "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-0.stl",
-        "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-1.stl",
-        "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-2.stl",
-        "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-3.stl",
-        "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-4.stl",
-        "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-5.stl",
-        "/home/zjk/work/RobotSim/grabber/resource/robotModels/FANUC_M710iC_50-6.stl",
-    };
-
-    for(int i = 0; i < AxisNum; i++)
-    {
-        set_modelName(CFGDATArootName[i], i);
-        set_nodeAxisName(CFGDATAnodeAxis[i], i);
-        set_filename(CFGDATAfilename[i], i);
-        set_axisRotAttr(-120.0, 120., i);
-        set_axisRotation(CFGDATAaxisRotation[i][0], CFGDATAaxisRotation[i][1], CFGDATAaxisRotation[i][2], i);
-        set_axisPosition(CFGDATAaxisPosition[i][0], CFGDATAaxisPosition[i][1], CFGDATAaxisPosition[i][2], i);
-    }
+    InitCfg();
 
 }
 
@@ -68,6 +38,7 @@ void RobotModelCfg::debugInfo()
         qDebug("[%d]rx:%12f,ry:%12f,rz:%12f", i, axisRotation[i][0], axisRotation[i][1], axisRotation[i][2] );
         qDebug("[%d] x:%12f, y:%12f, z:%12f", i, axisPosition[i][0], axisPosition[i][1], axisPosition[i][2] );
     }
+    qDebug("m_scale = %f ", m_scale);
 }
 const char * RobotModelCfg::get_filename(unsigned int index)
 {
@@ -183,9 +154,31 @@ bool RobotModelCfg::saveCfgtoXml(const char *xmlFilename)
     return true;
 }
 
-bool RobotModelCfg::clearCfg()
+void RobotModelCfg::InitCfg()
 {
-    return false;
+    m_scale = 1.0;
+    AxisNum = 0;
+    memset(m_robotname, 0, MAX_FILENAME_LEN * sizeof(char *));
+
+    for (unsigned char i = 0; i < MAX_LEN; i++)
+    {
+        axisRotation[i][0] = 0.0;
+        axisRotation[i][1] = 0.0;
+        axisRotation[i][2] = 0.0;
+
+        axisPosition[i][0] = 0.0;
+        axisPosition[i][1] = 0.0;
+        axisPosition[i][2] = 0.0;
+
+        m_axisRotAttr[i][0] = 0.0;
+        m_axisRotAttr[i][1] = 0.0;
+
+        memset(m_modelName[i], 0, MAX_FILENAME_LEN * sizeof(char *));
+        memset(m_filename[i], 0, MAX_FILENAME_LEN * sizeof(char *));
+        memset(nodeAxisName[i], 0, MAX_FILENAME_LEN * sizeof(char *));
+    }
+
+    return;
 }
 
 
@@ -226,7 +219,7 @@ bool RobotModelCfg::readfile(const char *filename)
         return false;
     }
 
-    //解析并验证根元素
+    //解析并验证根元素,错误提示在被调用函数弹出。
     if (!parseRootElement(root, filename))
     {
         return false;
@@ -240,16 +233,16 @@ bool RobotModelCfg::parseRootElement(const QDomElement &element, const QString &
 {
     QDomElement elementTmp;
     QDomNode child = element.firstChild();
-    bool ret = false;
+    bool ret = true;
 
     while (!child.isNull())
     {
         elementTmp = child.toElement();
         if (elementTmp.tagName() == "robot_dk")
         {
-            ret = parseRobotDKElement(elementTmp);
-            if (!ret)
+            if (!parseRobotDKElement(elementTmp))
             {
+                ret = false;
                 break;
             }
         }
@@ -270,9 +263,9 @@ bool RobotModelCfg::parseRootElement(const QDomElement &element, const QString &
             }
 
             //校验 robot_geometry结点信息，并保存
-            ret = processGeometryData(fullFilenameList);
-            if (!ret)
+            if (!processGeometryData(fullFilenameList))
             {
+                ret = false;
                 break;
             }
 
@@ -286,12 +279,18 @@ bool RobotModelCfg::parseRootElement(const QDomElement &element, const QString &
             {
                 set_modelName(qPrintable(modelName),index++);
             }
+
         }
         else if (elementTmp.tagName() == "CAD_base")
         {
         }
         else if (elementTmp.tagName() == "CAD_scale")
         {
+            if (!parseScaleElement(elementTmp))
+            {
+                ret =false;
+                break;
+            }
         }
         else
         {
@@ -305,10 +304,10 @@ bool RobotModelCfg::parseRootElement(const QDomElement &element, const QString &
 
 bool RobotModelCfg::processGeometryData(const QStringList &fullFilenameList)
 {
-    if (fullFilenameList.length() > MAX_LEN)
+    if (fullFilenameList.length() != this->AxisNum)
     {
-        QMessageBox::warning(0,QObject::tr("isGeometryLegal"),QObject::tr("fullFilenameList length is %1 > %2")
-                             .arg(fullFilenameList.length()).arg(MAX_LEN));
+        QMessageBox::warning(0,QObject::tr("DOM Parser"),QObject::tr("geometry(%1) is not eaql to axis(%2)")
+                             .arg(fullFilenameList.length()).arg(this->AxisNum));
         return false;
     }
 
@@ -377,8 +376,7 @@ bool RobotModelCfg::parseRobotDKElement(const QDomElement &element)
 {
     QDomNode child = element.firstChild();
 
-    int index = 0;
-
+    this->AxisNum = 0;
     while (!child.isNull())
     {
         QDomElement elementTmp = child.toElement();
@@ -386,19 +384,23 @@ bool RobotModelCfg::parseRobotDKElement(const QDomElement &element)
         {
             float min = elementTmp.attribute("liminf").toFloat();
             float max = elementTmp.attribute("limsup").toFloat();
-            set_nodeAxisName(qPrintable(elementTmp.attribute("id")), index);
+            set_nodeAxisName(qPrintable(elementTmp.attribute("id")), this->AxisNum);
             set_axisRotation(elementTmp.attribute("rx").toFloat(), elementTmp.attribute("ry").toFloat(),
-                             elementTmp.attribute("rz").toFloat(), index);
+                             elementTmp.attribute("rz").toFloat(), this->AxisNum);
             set_axisPosition(elementTmp.attribute("x").toFloat(), elementTmp.attribute("y").toFloat(),
-                             elementTmp.attribute("z").toFloat(), index);
+                             elementTmp.attribute("z").toFloat(), this->AxisNum);
             if (max > min)
             {
-                set_axisRotAttr(min, max, index);
+                set_axisRotAttr(min, max, this->AxisNum);
             }
 
-            index++;
-            if (index > this->AxisNum)
+            this->AxisNum++;
+            if (MAX_LEN < this->AxisNum)
             {
+                QMessageBox::warning(0, QObject::tr("DOM Parser"),
+                                     QObject::tr("Error: There are too many axises(%1) in the robot model file!")
+                                     .arg(this->AxisNum));
+
                 return false;
             }
         }
@@ -408,5 +410,18 @@ bool RobotModelCfg::parseRobotDKElement(const QDomElement &element)
     return true;
 }
 
-
+bool RobotModelCfg::parseScaleElement(const QDomElement &element)
+{
+    if ( 0.01 > element.attribute("FACTOR").toFloat())
+    {
+        QMessageBox::warning(0, QObject::tr("DOM Parser"),
+                             QObject::tr("Error: scale FACTOR is less then 0.01!"));
+        return false;
+    }
+    else
+    {
+        set_scale(element.attribute("FACTOR").toFloat());
+        return true;
+    }
+}
 

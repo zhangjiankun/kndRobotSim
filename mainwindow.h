@@ -55,48 +55,85 @@ class RobotControlPanel;
 class modelTree;
 class position;
 class RobotModelCfg;
+class PrjCfg;
+class Cfg;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
     MainWindow();
-
+    ~MainWindow();
+    static QString strippedName(const QString &fullFileName);
 private slots:
-    void renderIntoPixmap();
-    void grabFrameBuffer();
-    void clearPixmap();
+    void newProject();
+    void openProject();
+    void closeProject();
+    void saveProject();
+    void saveAsProject();
+    void openRecentProjectFile();
+
     void about();
     void showControlPanel();
     void showModelPanel();
     void showPositionPanel();
     void loadRobotModel();
     void saveRobotModel();
+    bool registerCenterWidget(QWidget *centerWidget);
+    bool registerCfg(Cfg * cfg);
 
 private:
+    enum { MAX_RECENT_PROJECT_NUM = 10 };
+
     void createActions();
     void createMenus();
     void createToolBars();
     void createContextMenu();
     void createStatusBar();
-    QSlider *createSlider(const char *changedSignal, const char *setterSlot);
-    void setPixmap(const QPixmap &pixmap);
-    QSize getSize();
+    void readSettings();
+    void writeSettings();
+    bool okToContinue();
+    bool save();
+    bool saveAs();
+    bool saveProjectFile(const QString &fileName);
+    void setCurrentProjectFile(const QString &fileName);
+    bool loadPrjFile(const QString &fileName);
+    void closeEvent(QCloseEvent *event);
 
-    QWidget *centralWidget;
-    QScrollArea *glWidgetArea;
+
+    QSlider *createSlider(const char *changedSignal, const char *setterSlot);
+//    void setPixmap(const QPixmap &pixmap);
+    QSize getSize();
+    void updateRecentProjectFileActions();
+
+//    QWidget *centralWidget;
+    QScrollArea *m_glWidgetArea;
+
     QScrollArea *pixmapLabelArea;
     GLWidget *glWidget;
-    QLabel *pixmapLabel;
+    QWidget *m_usrDefinedWidget;
+    RobotModelCfg *m_modelCfgData;
+    PrjCfg *m_prjCfg;
+
+
     RobotControlPanel *controlPanelUI;
     modelTree *modelPanelUI;
     position *positionPanelUI;
 
+    int m_curRecentProjNum;
+    QAction *m_recentProjectActions[MAX_RECENT_PROJECT_NUM];
+    QAction *m_separatorAction;
+    QString m_curProjectFile;
+    QStringList m_recentProjectFiles;
+
     QMenu *fileMenu;
     QMenu *helpMenu;
     QMenu *modelMenu;
-    QAction *grabFrameBufferAct;
-    QAction *renderIntoPixmapAct;
-    QAction *clearPixmapAct;
+    QAction *m_openProject;
+    QAction *m_closeProject;
+    QAction *m_newProject;
+    QAction *m_saveProjectAct;
+    QAction *m_saveAsProjectAct;
+
     QAction *exitAct;
     QAction *aboutAct;
     QAction *aboutQtAct;
@@ -108,7 +145,7 @@ private:
 
     QToolBar *controlTool;
     QToolBar *modelTool;
-    RobotModelCfg * m_modelCfgData;
+    QToolBar *m_projectTool;
 
 };
 

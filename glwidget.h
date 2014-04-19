@@ -44,6 +44,7 @@
 #include <QGLWidget>
 class UsrAiNode;
 class RobotModelCfg;
+class aiScene;
 class GLWidget : public QGLWidget
 {
     Q_OBJECT
@@ -75,7 +76,7 @@ public slots:
     void setXTransition(double xposition, const char * currentNodeName);
     void setYTransition(double yposition, const char * currentNodeName);
     void setZTransition(double zposition, const char * currentNodeName);
-    void creatBasicNodeTree(RobotModelCfg *robotModelCfg); //根据配置信息，构造opengl场景中，机器手臂模型。
+    void synCfgToModeltree(RobotModelCfg *robotModelCfg); //根据配置信息，构造opengl场景中，机器手臂模型。
 
 protected:
     void initializeGL();
@@ -92,7 +93,7 @@ private slots:
     void advanceGears();
 
 private:
-    GLuint makeLoadObj();
+    GLuint makeLoadObj(const aiScene *scene, float scale);
     GLuint makeGear(const GLfloat *reflectance, GLdouble innerRadius,
                     GLdouble outerRadius, GLdouble thickness,
                     GLdouble toothSize, GLint toothCount);
@@ -114,7 +115,7 @@ private:
     GLuint gear1;
     GLuint gear2;
     GLuint gear3;
-    GLuint axis;
+    GLuint m_axisShowList;
 
     int xRot;
     int yRot;

@@ -49,13 +49,13 @@
 
 //b zjk
 // assimp include files. These three are usually needed.
+#include "debug.h"
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include "usrainode.h"
 #include "loadModel.h"
 #include "public.h"
-#include "debug.h"
 #include "usropengl.h"
 #include "Matrices.h"
 
@@ -90,7 +90,7 @@ GLWidget::~GLWidget()
     glDeleteLists(gear1, 1);
     glDeleteLists(gear2, 1);
     glDeleteLists(gear3, 1);
-    glDeleteLists(axis, 1);
+    glDeleteLists(m_axisShowList, 1);
     glDeleteTextures(1,texture);
 //    delete m_modelCfgData;
     //glDeleteLists(scene_list,1);
@@ -111,6 +111,8 @@ Description: // 函数功能、性能等的描述
                                       |
                                       |_ TAxis __ T
 
+  使用到了opengl的showlist，因此，需要在opengl初始化后，才能使用。
+
 Input: // 输入参数说明，包括每个参数的作
 // 用、取值说明及参数间关系。
 Output: // 对输出参数的说明。
@@ -118,7 +120,7 @@ Return: // 函数返回值的说明
 Author: zhangjiankun
 Others: // 其它说明
 *************************************************/
-void GLWidget::creatBasicNodeTree( RobotModelCfg *robotModelCfg)
+void GLWidget::synCfgToModeltree(RobotModelCfg *robotModelCfg)
 {
     int i = 0;
     float *positionAxis = NULL;
@@ -130,7 +132,7 @@ void GLWidget::creatBasicNodeTree( RobotModelCfg *robotModelCfg)
 
     // 创建baseAxis
     m_robotModelRoot = new UsrAiNode(UsrAiNode::AXIS, robotModelCfg->get_nodeAxisName(0)); //当前结点为坐标轴
-    m_robotModelRoot->addShowListToNode(makeWordPlane(), robotModelCfg->get_nodeAxisName(0));
+    m_robotModelRoot->addShowListToNode(m_axisShowList, robotModelCfg->get_nodeAxisName(0));
 
     //生成模型树，加载轴坐标（轴坐标随手臂一起运动，Txyz时针对root坐标的移动如果重合的话，参数为0即可）
     for(i = 1; i < robotModelCfg->getAxisNum(); i++)
@@ -140,7 +142,7 @@ void GLWidget::creatBasicNodeTree( RobotModelCfg *robotModelCfg)
                                      robotModelCfg->get_nodeAxisName(i-1));
         m_robotModelRoot->addNodeToTree(new UsrAiNode(UsrAiNode::AXIS, robotModelCfg->get_nodeAxisName(i)),
                                      robotModelCfg->get_nodeAxisName(i-1));
-        m_robotModelRoot->addShowListToNode(makeWordPlane(), robotModelCfg->get_nodeAxisName(i));
+        m_robotModelRoot->addShowListToNode(m_axisShowList, robotModelCfg->get_nodeAxisName(i));
 
         //移动坐标轴到转轴原点
         m_robotModelRoot->translateXYZ(robotModelCfg->get_nodeAxisName(i-1), positionAxis[0], positionAxis[1], positionAxis[2]);
@@ -161,14 +163,28 @@ void GLWidget::creatBasicNodeTree( RobotModelCfg *robotModelCfg)
     //在每个节点上加载手臂模型
     for(int i = 0; i < robotModelCfg->getAxisNum(); i++)
     {
-        if( 0 != loadasset(robotModelCfg->get_filename(i)))
+        //由于配置的文件时来自外部，所以必须检查。
+        if (!QFile::exists(robotModelCfg->get_filename(i)))
         {
-            WAR_OUT("load file %s failed!\n", robotModelCfg->get_filename(i));
+            qWarning("load file %s not exit!", robotModelCfg->get_filename(i));
+            continue;
+        }
+
+        const struct aiScene* scene = NULL;
+        scene = aiImportFile(robotModelCfg->get_filename(i), aiProcessPreset_TargetRealtime_Fast);
+        if( NULL == scene)
+        {
+            qWarning("load file %s failed!", robotModelCfg->get_filename(i));
+            continue;
         }
 
         float * axisRotation = robotModelCfg->get_axisRotation(i);
+
         m_robotModelRoot->setFileNameByNode(robotModelCfg->get_filename(i),robotModelCfg->get_rootName(i) );
-        m_robotModelRoot->addShowListToNode(makeLoadObj(),robotModelCfg->get_rootName(i));
+
+        m_robotModelRoot->addShowListToNode(makeLoadObj(scene,robotModelCfg->get_scale()),
+                                            robotModelCfg->get_rootName(i));
+
         m_robotModelRoot->setRotationAxis(axisRotation[0], axisRotation[1], axisRotation[2],
                                        robotModelCfg->get_nodeAxisName(i));
         aiReleaseImport(scene);
@@ -204,19 +220,20 @@ void GLWidget::initializeGL()
     //显示列表生成
     gear2 = makeGear(reflectance2, 0.5, 1.0, 2.0, 0.7, 10);
     gear3 = makeGear(reflectance3, 1.3, 2.0, 0.5, 0.7, 15);
-    axis = makeWordPlane();
+    m_axisShowList = makeWordPlane();
 
+    //opengl初始化时才去调用。使用之前先释放内存。尽管没有被用过。
+    delete m_robotModelRoot;
     m_robotModelRoot = new UsrAiNode(UsrAiNode::AXIS, "root"); //当前结点为坐标轴
-    m_robotModelRoot->addShowListToNode(makeWordPlane());
+    m_robotModelRoot->addShowListToNode(m_axisShowList);
 
     glEnable(GL_NORMALIZE);
-    glClearColor(0.3f, 0.3f, 0.5f, 0.5f);
+    glClearColor( 0.3f, 0.3f, 0.5f, 0.5f );
     glClearDepth( 1.0 );//Specifies the depth value used when the depth buffer is cleared. The initial value is 1.
     glEnable( GL_DEPTH_TEST );
     glDepthFunc( GL_LEQUAL );
 
     DEBUG_OUT("initial GL.Time elapsed: %d ms", t.elapsed());
-
 
 }
 inline float GLWidget::getNearLen()
@@ -265,7 +282,7 @@ void GLWidget::paintGL()
     gluLookAt(1.0, 1.0, 1.0,0.0, 0.0, 0.0,0.0, 0.0, 1.0);
 
     //显示世界坐标中心
-    glCallList(axis);
+    glCallList(m_axisShowList);
     //glCallList(gear2);
 
     glRotated(0*xRot / 16., 1.0, 0.0, 0.0);
@@ -734,7 +751,7 @@ void GLWidget::advanceGears()
     updateGL();
 }
 
-GLuint GLWidget::makeLoadObj()
+GLuint GLWidget::makeLoadObj(const struct aiScene * scene, float scale)
 {
     GLuint list = glGenLists(1);
     //const GLfloat reflectance[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
@@ -743,7 +760,7 @@ GLuint GLWidget::makeLoadObj()
     //glMaterialfv(GL_FRONT_FACE, GL_AMBIENT_AND_DIFFUSE, reflectance); 材质应当放到模型中去显示。
     //glShadeModel(GL_FLAT);
 
-    recursive_render(scene, scene->mRootNode);
+    recursive_render(scene, scene->mRootNode, scale);
     glEndList();
 
     return list;

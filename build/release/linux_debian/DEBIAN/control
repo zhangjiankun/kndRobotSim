@@ -1,0 +1,26 @@
+Package: kndrosim 
+Version: 2.4.1-0ubuntu2
+Architecture: i386
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Installed-Size: 45254
+Pre-Depends: dpkg (>= 1.15.6)
+Depends: libqt4-sql-sqlite, libc6 (>= 2.15), libgcc1 (>= 1:4.1.1), libqt4-declarative (>= 4:4.7.4), libqt4-network (>= 4:4.7.1), libqt4-script (>= 4:4.7.1), libqt4-sql (>= 4:4.7.1), libqt4-svg (>= 4:4.7.1), libqt4-xml (>= 4:4.7.1), libqtcore4 (>= 4:4.8.0), libqtgui4 (>= 4:4.8.0), libqtwebkit4 (>= 2.2~2011week36), libstdc++6 (>= 4.4.0)
+Recommends: gdb, make, g++, qt4-demos, qt4-dev-tools, qt4-doc, qt4-qmlviewer, qtcreator-doc, xterm | x-terminal-emulator
+Suggests: cmake, git, kdelibs5-data, subversion
+Section: devel
+Priority: optional
+Homepage: https://qt.nokia.com/products/developer-tools
+Description: lightweight integrated development environment (IDE) for Qt
+ Qt Creator is a new, lightweight, cross-platform integrated development
+ environment (IDE) designed to make development with the Qt application
+ framework even faster and easier.
+ .
+ It includes:
+  * An advanced C++ code editor
+  * Integrated GUI layout and forms designer
+  * Project and build management tools
+  * Integrated, context-sensitive help system
+  * Visual debugger
+  * Rapid code navigation tools
+  * Supports multiple platforms
+Original-Maintainer: Debian Qt/KDE Maintainers <debian-qt-kde@lists.debian.org>

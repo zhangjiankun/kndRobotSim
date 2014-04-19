@@ -18,8 +18,8 @@ Modification:
 2. ...
 *************************************************/
 #include "usrainode.h"
-#include<iostream>
-#include<debug.h>
+#include <iostream>
+#include "debug.h"
 #include <QtOpenGL>
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
