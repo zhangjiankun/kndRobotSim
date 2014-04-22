@@ -209,6 +209,9 @@ void MainWindow::createToolBars()
     m_projectTool->addAction(m_saveProjectAct);
     m_projectTool->addAction(exitAct);
 
+    controlTool = addToolBar(tr("&controlPanel"));
+    controlTool->addAction(controlPanelAction);
+
 //    controlTool->addSeparator();
 //    controlTool->addAction(exitAct);
 
