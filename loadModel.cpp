@@ -1,8 +1,8 @@
 #include<QtDebug>
 #include <QtOpenGL>
-#include <assimp/cimport.h>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
+#include <include/assimp/cimport.h>
+#include <include/assimp/scene.h>
+#include <include/assimp/postprocess.h>
 // the global Assimp scene object
 const struct aiScene* scene = NULL;
 GLuint scene_list = 0;
